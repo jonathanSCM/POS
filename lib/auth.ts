@@ -10,8 +10,18 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Contraseña", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const headers = (req?.headers ?? {}) as Record<string, string>
+        const ip =
+          headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+          headers["x-real-ip"] ||
+          "desconocida"
+        const userAgent = headers["user-agent"] || "desconocido"
+        const email = credentials?.email || "(vacío)"
+        const logCtx = `email=${email} ip=${ip} ua="${userAgent}"`
+
         if (!credentials?.email || !credentials?.password) {
+          console.warn(`[login] FALLO (campos vacíos) ${logCtx}`)
           return null
         }
 
@@ -19,7 +29,13 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
-        if (!user || !user.active) {
+        if (!user) {
+          console.warn(`[login] FALLO (usuario no existe) ${logCtx}`)
+          return null
+        }
+
+        if (!user.active) {
+          console.warn(`[login] FALLO (usuario inactivo) ${logCtx}`)
           return null
         }
 
@@ -29,8 +45,11 @@ export const authOptions: NextAuthOptions = {
         )
 
         if (!isPasswordValid) {
+          console.warn(`[login] FALLO (contraseña incorrecta) ${logCtx}`)
           return null
         }
+
+        console.log(`[login] OK role=${user.role} ${logCtx}`)
 
         return {
           id: user.id,
