@@ -36,7 +36,6 @@ function serializeSale(sale: any) {
 export async function createSale(data: {
   customerName?: string
   cashierId: string
-  registerSessionId?: string
   lines: Array<{
     productId: string
     productName: string
@@ -55,6 +54,15 @@ export async function createSale(data: {
 
     // Crear venta con transacción
     const sale = await prisma.$transaction(async (tx) => {
+      // La sesión de caja abierta se resuelve siempre del lado del servidor
+      // (no se confía en un registerSessionId que mande el cliente): así
+      // toda venta en efectivo queda ligada a la caja real que está abierta
+      // en este momento, y su monto se suma al efectivo esperado.
+      const openSession = await tx.cashRegisterSession.findFirst({
+        where: { status: "OPEN" },
+        orderBy: { openedAt: "desc" },
+      })
+
       // Validar stock disponible
       for (const line of data.lines) {
         const product = await tx.product.findUnique({
@@ -84,7 +92,7 @@ export async function createSale(data: {
           code: saleCode,
           customerName: data.customerName || null,
           cashierId: data.cashierId,
-          registerSessionId: data.registerSessionId,
+          registerSessionId: openSession?.id,
           status: "COMPLETED",
           subtotal: new Prisma.Decimal(data.total),
           discountTotal: new Prisma.Decimal(0),
@@ -157,6 +165,29 @@ export async function createSale(data: {
             },
           })
         }
+      }
+
+      // Solo el efectivo físico afecta lo que debería haber en la caja al
+      // cerrar — tarjeta/QR/transferencia no pasan por el cajón. Se suma al
+      // efectivo esperado de la sesión abierta y queda un CashMovement de
+      // auditoría (antes este modelo existía en el schema pero no se usaba).
+      if (openSession && data.paymentMethod === "CASH") {
+        const cashAmount = new Prisma.Decimal(data.total)
+
+        await tx.cashRegisterSession.update({
+          where: { id: openSession.id },
+          data: { expectedCash: { increment: cashAmount } },
+        })
+
+        await tx.cashMovement.create({
+          data: {
+            sessionId: openSession.id,
+            type: "SALE_CASH_IN",
+            amount: cashAmount,
+            note: `Venta ${saleCode}`,
+            userId: (session.user as any)?.id as string,
+          },
+        })
       }
 
       return newSale

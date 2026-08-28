@@ -188,12 +188,17 @@ export default function RegisterPage() {
                   <p className="text-sm text-muted">Fondo Inicial</p>
                   <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.startingCash).toFixed(2)}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-muted">
+                    Efectivo Esperado {session.status === "OPEN" && "(en vivo)"}
+                  </p>
+                  <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.expectedCash || 0).toFixed(2)}</p>
+                  {session.status === "OPEN" && (
+                    <p className="text-xs text-muted mt-1">Fondo inicial + ventas en efectivo del turno</p>
+                  )}
+                </div>
                 {session.status === "CLOSED" && (
                   <>
-                    <div>
-                      <p className="text-sm text-muted">Efectivo Esperado</p>
-                      <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.expectedCash || 0).toFixed(2)}</p>
-                    </div>
                     <div>
                       <p className="text-sm text-muted">Efectivo Contado</p>
                       <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.countedCash || 0).toFixed(2)}</p>
