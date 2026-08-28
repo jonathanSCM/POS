@@ -5,7 +5,12 @@ FROM node:20-slim AS deps
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
-RUN npm ci
+# "npm ci" exige que el lockfile coincida exacto con el arbol de dependencias
+# opcionales de la plataforma actual; el lockfile se genero en Windows y no
+# resuelve igual la rama opcional de @tailwindcss/oxide (fallback WASM) en
+# Linux. "npm install" resuelve correctamente para la plataforma del propio
+# contenedor sin depender de que el lockfile sea portable entre SO.
+RUN npm install
 
 # ─── Etapa 2: build ──────────────────────────────────────────────────
 FROM node:20-slim AS builder
