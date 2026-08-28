@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// TYPES (SQLite uses strings instead of enums)
+// ─────────────────────────────────────────────
+// Valid values:
+// Role: ADMIN, MANAGER, CASHIER
+// UnitType: UNIT, KG, LITER, BOX
+// StockMovementType: PURCHASE_IN, SALE_OUT, RETURN_IN, ADJUSTMENT_IN, ADJUSTMENT_OUT, VOID_RESTOCK
+// PurchaseOrderStatus: DRAFT, RECEIVED, CANCELLED
+// SaleStatus: HELD, COMPLETED, VOIDED, RETURNED, PARTIALLY_RETURNED
+// PaymentMethod: CASH, CARD, QR
+// CashMovementType: SALE_CASH_IN, PAID_IN, PAID_OUT, REFUND_CASH_OUT
+// RegisterSessionStatus: OPEN, CLOSED
+// AuditAction: SALE_VOID, STOCK_ADJUSTMENT, PRICE_CHANGE, REGISTER_DISCREPANCY, USER_CREATED, USER_PASSWORD_RESET, RETURN_PROCESSED
+
+// ─────────────────────────────────────────────
+// USERS & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("CASHIER")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  salesAsCashier      Sale[]                @relation("SaleCashier")
+  voidedSales         Sale[]                @relation("SaleVoidedBy")
+  stockMovements      StockMovement[]
+  registerSessions    CashRegisterSession[]
+  cashMovements       CashMovement[]
+  auditLogs           AuditLog[]
+  purchaseOrdersMade  PurchaseOrder[]
+  returnsProcessed    Return[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTS & INVENTORY
+// ─────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id             String          @id @default(cuid())
+  name           String
+  contactName    String?
+  phone          String?
+  email          String?
+  address        String?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  purchaseOrders PurchaseOrder[]
+  batches        ProductBatch[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  sku              String   @unique
+  barcode          String?  @unique
+  name             String
+  description      String?  
+  categoryId       String?
+  category         Category? @relation(fields: [categoryId], references: [id])
+  costPrice        Decimal  
+  salePrice        Decimal  
+  stockQty         Decimal   @default(0)
+  minStockAlert    Decimal   @default(0)
+  unitType         String @default("UNIT")
+  imageUrl         String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  saleLines           SaleLine[]
+  stockMovements      StockMovement[]
+  batches             ProductBatch[]
+  purchaseOrderLines  PurchaseOrderLine[]
+  returnLines         ReturnLine[]
+
+  @@index([categoryId])
+  @@index([name])
+  @@map("products")
+}
+
+model ProductBatch {
+  id               String    @id @default(cuid())
+  productId        String
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batchNumber      String    
+  quantity         Decimal   
+  qtyRemaining     Decimal   
+  expiryDate       DateTime?
+  receivedDate     DateTime  @default(now())
+  supplierId       String?
+  supplier         Supplier? @relation(fields: [supplierId], references: [id])
+  purchaseOrderId  String?
+  purchaseOrder    PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  stockMovements   StockMovement[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([productId, batchNumber])
+  @@index([expiryDate])
+  @@index([productId])
+  @@map("product_batches")
+}
+
+model StockMovement {
+  id               String            @id @default(cuid())
+  productId        String
+  product          Product           @relation(fields: [productId], references: [id])
+  batchId          String?
+  batch            ProductBatch?     @relation(fields: [batchId], references: [id])
+  type             String
+  quantity         Decimal           
+  qtyBefore        Decimal           
+  qtyAfter         Decimal           
+  reason           String?
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
+  saleId           String?
+  sale             Sale?             @relation(fields: [saleId], references: [id])
+  purchaseOrderId  String?
+  purchaseOrder    PurchaseOrder?    @relation(fields: [purchaseOrderId], references: [id])
+  returnId         String?
+  return           Return?           @relation(fields: [returnId], references: [id])
+  createdAt        DateTime          @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+model PurchaseOrder {
+  id          String              @id @default(cuid())
+  code        String              @unique
+  supplierId  String
+  supplier    Supplier            @relation(fields: [supplierId], references: [id])
+  status      String @default("DRAFT")
+  notes       String?
+  createdById String
+  createdBy   User                @relation(fields: [createdById], references: [id])
+  createdAt   DateTime            @default(now())
+  receivedAt  DateTime?
+
+  lines           PurchaseOrderLine[]
+  stockMovements  StockMovement[]
+  batches         ProductBatch[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Decimal       
+  unitCost        Decimal       
+
+  @@map("purchase_order_lines")
+}
+
+// ─────────────────────────────────────────────
+// CUSTOMERS
+// ─────────────────────────────────────────────
+
+model Customer {
+  id                  String   @id @default(cuid())
+  name                String
+  phone               String
+  email               String?
+  address             String?
+  storeCreditBalance  Decimal   @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  sales Sale[]
+
+  @@index([name])
+  @@index([phone])
+  @@map("customers")
+}
+
+// ─────────────────────────────────────────────
+// SALES (POS core)
+// ─────────────────────────────────────────────
+
+model Sale {
+  id                String      @id @default(cuid())
+  code              String      @unique
+  status            String  @default("HELD")
+  customerId        String?
+  customer          Customer?   @relation(fields: [customerId], references: [id])
+  customerName      String?
+  cashierId         String
+  cashier           User        @relation("SaleCashier", fields: [cashierId], references: [id])
+  registerSessionId String?
+  registerSession   CashRegisterSession? @relation(fields: [registerSessionId], references: [id])
+
+  subtotal          Decimal
+  discountTotal     Decimal      @default(0)
+  taxTotal          Decimal      @default(0)
+  total             Decimal
+
+  isInvoiced           Boolean  @default(false)
+  invoiceNumber        Int?     @unique
+  customerTaxId        String?
+  customerBusinessName String?
+  publicToken          String?  @unique
+
+  heldAt            DateTime?
+  completedAt       DateTime?
+
+  voidedById        String?
+  voidedBy          User?       @relation("SaleVoidedBy", fields: [voidedById], references: [id])
+  voidedAt          DateTime?
+  voidReason        String?
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  lines             SaleLine[]
+  payments          Payment[]
+  stockMovements    StockMovement[]
+  returns           Return[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+  @@index([cashierId])
+  @@map("sales")
+}
+
+model SaleLine {
+  id            String   @id @default(cuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  productName   String
+  unitPrice     Decimal  
+  quantity      Decimal  
+  lineDiscount  Decimal   @default(0)
+  lineTotal     Decimal  
+
+  returnLines   ReturnLine[]
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_lines")
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  saleId            String
+  sale              Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  method            String
+  amount            Decimal       
+  amountTendered    Decimal?      
+  changeGiven       Decimal?      
+  reference         String?
+  createdAt         DateTime      @default(now())
+
+  @@index([saleId])
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────────
+// RETURNS
+// ─────────────────────────────────────────────
+
+model Return {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  saleId          String
+  sale            Sale     @relation(fields: [saleId], references: [id])
+  processedById    String
+  processedBy     User     @relation(fields: [processedById], references: [id])
+  reason          String?
+  totalRefunded   Decimal  
+  refundMethod    String
+  createdAt       DateTime @default(now())
+
+  lines           ReturnLine[]
+  stockMovements  StockMovement[]
+
+  @@map("returns")
+}
+
+model ReturnLine {
+  id              String   @id @default(cuid())
+  returnId        String
+  return          Return   @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  saleLineId      String
+  saleLine        SaleLine @relation(fields: [saleLineId], references: [id])
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  quantity        Decimal  
+  refundAmount    Decimal  
+
+  @@map("return_lines")
+}
+
+// ─────────────────────────────────────────────
+// CASH REGISTER SESSIONS
+// ─────────────────────────────────────────────
+
+model CashRegisterSession {
+  id              String                 @id @default(cuid())
+  code            String                 @unique
+  openedById      String
+  openedBy        User                   @relation(fields: [openedById], references: [id])
+  status          String  @default("OPEN")
+
+  startingCash    Decimal                
+  expectedCash    Decimal?               
+  countedCash     Decimal?               
+  discrepancy     Decimal?               
+  notes           String?
+
+  openedAt        DateTime               @default(now())
+  closedAt        DateTime?
+
+  sales           Sale[]
+  cashMovements   CashMovement[]
+
+  @@map("cash_register_sessions")
+}
+
+model CashMovement {
+  id          String            @id @default(cuid())
+  sessionId   String
+  session     CashRegisterSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type        String
+  amount      Decimal           
+  note        String?
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  createdAt   DateTime          @default(now())
+
+  @@index([sessionId])
+  @@map("cash_movements")
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS (singleton)
+// ─────────────────────────────────────────────
+
+model StoreSettings {
+  id                  String   @id @default(cuid())
+  storeName           String   @default("Mi Tienda")
+  logoUrl             String?
+  currencySymbol      String   @default("$")
+  taxRatePercent      Decimal   @default(0)
+  receiptFooterText   String?  
+  receiptPaperWidth   String   @default("80mm")
+  updatedAt           DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          String       @id @default(cuid())
+  action      String
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  entityType  String
+  entityId    String
+  before      String?
+  after       String?
+  description String?
+  createdAt   DateTime     @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// ETAPA 2 — PEDIDOS POR WHATSAPP (base, sin lógica de bot todavía)
+// ─────────────────────────────────────────────
+// Valid values:
+// WhatsAppOrder.status: NUEVO, CONFIRMADO, ENTREGADO, CANCELADO
+// WhatsAppOrder.deliveryType: RECOGER, ENTREGA
+
+model WhatsAppOrder {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  customerPhone  String
+  customerName   String?
+  status         String   @default("NUEVO")
+  deliveryType   String
+  paymentMethod  String?
+  total          Decimal  @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  lines WhatsAppOrderLine[]
+
+  @@index([status])
+  @@index([customerPhone])
+  @@map("whatsapp_orders")
+}
+
+model WhatsAppOrderLine {
+  id          String        @id @default(cuid())
+  orderId     String
+  order       WhatsAppOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  quantity    Decimal
+  unitPrice   Decimal
+  lineTotal   Decimal
+
+  @@index([orderId])
+  @@map("whatsapp_order_lines")
+}
