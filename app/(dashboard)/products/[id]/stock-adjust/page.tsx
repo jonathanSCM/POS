@@ -55,33 +55,33 @@ export default function StockAdjustPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
+      <h1 className="text-3xl font-bold text-text mb-8">
         Ajustar Stock - {product.name}
       </h1>
 
-      <div className="bg-white rounded-lg shadow p-8 max-w-md">
+      <div className="bg-surface backdrop-blur-md rounded-lg shadow p-8 max-w-md">
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-red-100 border border-red-400 text-danger px-4 py-3 rounded">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-green-100 border border-green-400 text-success px-4 py-3 rounded">
             Stock ajustado correctamente. Redirigiendo...
           </div>
         )}
 
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Stock Actual:</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="mb-6 p-4 bg-white/5 rounded-lg">
+          <p className="text-sm text-muted">Stock Actual:</p>
+          <p className="text-2xl font-bold text-text">
             {Number(product.stockQty)} {product.unitType}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Cantidad (+ o -)
             </label>
             <input
@@ -90,23 +90,23 @@ export default function StockAdjustPage() {
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               placeholder="ej: 10 o -5"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted mt-1">
               Positivo para agregar, negativo para restar
             </p>
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Razón
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             >
               <option value="">Seleccionar razón</option>
               <option value="Inventario inicial">Inventario inicial</option>
@@ -122,14 +122,14 @@ export default function StockAdjustPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition"
+              className="flex-1 px-4 py-2 bg-primary hover:bg-primary disabled:opacity-40 text-white rounded-lg transition"
             >
               {isLoading ? "Ajustando..." : "Ajustar Stock"}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg transition"
+              className="flex-1 px-4 py-2 bg-white/15 hover:bg-white/25 text-text rounded-lg transition"
             >
               Cancelar
             </button>

@@ -17,17 +17,17 @@ export default async function DashboardLayout({
   const user = session.user as any
 
   return (
-    <div className="min-h-screen bg-white print:min-h-0">
+    <div className="min-h-screen print:min-h-0 print:bg-white">
       {/* Topbar */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40 print:hidden">
+      <div className="glass sticky top-0 z-40 print:hidden">
         <div className="max-w-full mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary to-accent">
               <span className="text-white text-lg font-bold">POS</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-black">POS Sistema</h1>
-              <p className="text-xs text-gray-600">{user.name} • {user.role}</p>
+              <h1 className="text-lg font-bold text-text font-display">POS Sistema</h1>
+              <p className="text-xs text-muted">{user.name} • {user.role}</p>
             </div>
           </div>
           <SignOutButton />
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
       </div>
 
       {/* Main Content */}
-      <div className="min-h-[calc(100vh-73px)] print:min-h-0">
+      <div className="min-h-[calc(100vh-73px)] print:min-h-0 print:bg-white">
         {children}
       </div>
     </div>

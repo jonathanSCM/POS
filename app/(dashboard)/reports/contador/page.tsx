@@ -43,56 +43,56 @@ export default async function ContadorReportPage({
   const exportUrl = `/api/reports/contador/export?from=${from.toISOString()}&to=${to.toISOString()}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Reporte del Contador</h1>
-            <p className="text-gray-600">Solo ventas registradas con factura</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Reporte del Contador</h1>
+            <p className="text-muted">Solo ventas registradas con factura</p>
           </div>
-          <Link href="/reports" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
+          <Link href="/reports" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
             ← Reportes
           </Link>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8 items-center">
-          <Link href={presetLink("week")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "week" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Última semana</Link>
-          <Link href={presetLink("month")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "month" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Último mes</Link>
-          <Link href={presetLink("all")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "all" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Todo</Link>
-          <a href={exportUrl} className="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
+          <Link href={presetLink("week")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "week" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Última semana</Link>
+          <Link href={presetLink("month")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "month" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Último mes</Link>
+          <Link href={presetLink("all")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "all" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Todo</Link>
+          <a href={exportUrl} className="ml-auto px-4 py-2 bg-success hover:brightness-110 text-white rounded-lg text-sm font-medium">
             ⬇️ Exportar a Excel
           </a>
         </div>
 
-        <div className="bg-white border border-gray-300 rounded-2xl p-6 mb-6">
-          <p className="text-sm text-gray-600 mb-2">Total Facturado del Periodo</p>
-          <p className="text-3xl font-bold text-black">${total.toFixed(2)} <span className="text-sm text-gray-500 font-normal">({sales.length} facturas)</span></p>
+        <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6 mb-6">
+          <p className="text-sm text-muted mb-2">Total Facturado del Periodo</p>
+          <p className="text-3xl font-bold text-text">${total.toFixed(2)} <span className="text-sm text-muted font-normal">({sales.length} facturas)</span></p>
         </div>
 
-        <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
+        <div className="bg-surface backdrop-blur-md border border-border rounded-2xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-300">
+            <thead className="bg-white/5 border-b border-border">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Fecha</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-black">N° Factura</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Razón Social</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-black">NIT</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-black">Importe</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-text">Fecha</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-text">N° Factura</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-text">Razón Social</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-text">NIT</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold text-text">Importe</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {sales.map((sale) => (
                 <tr key={sale.id}>
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(sale.completedAt || sale.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-sm font-mono font-semibold text-black">{sale.invoiceNumber}</td>
-                  <td className="px-6 py-4 text-sm text-black">{sale.customerBusinessName}</td>
-                  <td className="px-6 py-4 text-sm text-black">{sale.customerTaxId}</td>
-                  <td className="px-6 py-4 text-right text-sm font-bold text-black">${new Decimal(sale.total).toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-muted">{new Date(sale.completedAt || sale.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{sale.invoiceNumber}</td>
+                  <td className="px-6 py-4 text-sm text-text">{sale.customerBusinessName}</td>
+                  <td className="px-6 py-4 text-sm text-text">{sale.customerTaxId}</td>
+                  <td className="px-6 py-4 text-right text-sm font-bold text-text">${new Decimal(sale.total).toFixed(2)}</td>
                 </tr>
               ))}
               {sales.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">No hay ventas facturadas en este periodo</td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted">No hay ventas facturadas en este periodo</td>
                 </tr>
               )}
             </tbody>

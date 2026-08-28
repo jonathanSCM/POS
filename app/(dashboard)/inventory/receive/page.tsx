@@ -96,25 +96,25 @@ export default function ReceiveMerchandisePage() {
   }
 
   return (
-    <div className="p-8 min-h-screen bg-white">
+    <div className="p-8 min-h-screen bg-surface backdrop-blur-md">
       <div className="max-w-6xl">
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Recepción de Mercancía</h1>
-            <p className="text-gray-600">Ingresa múltiples lotes de una vez</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Recepción de Mercancía</h1>
+            <p className="text-muted">Ingresa múltiples lotes de una vez</p>
           </div>
-          <Link href="/inventory" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
+          <Link href="/inventory" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
             ← Atrás
           </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-8">
+        <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 shadow-sm space-y-8">
           {message && (
             <div
               className={`p-4 rounded-lg text-sm font-semibold ${
                 message.includes("✅")
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
+                  ? "bg-success/10 text-success border border-success/30"
+                  : "bg-danger/10 text-danger border border-danger/30"
               }`}
             >
               {message}
@@ -124,11 +124,11 @@ export default function ReceiveMerchandisePage() {
           {/* Proveedor y Usuario */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Proveedor</label>
+              <label className="block text-sm font-semibold text-text mb-2">Proveedor</label>
               <select
                 value={supplierId}
                 onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
               >
                 <option value="">Sin proveedor</option>
                 {suppliers.map((s) => (
@@ -139,21 +139,21 @@ export default function ReceiveMerchandisePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Ingresa:</label>
+              <label className="block text-sm font-semibold text-text mb-2">Ingresa:</label>
               <input
                 type="text"
                 disabled
                 value={(session?.user as any)?.name || ""}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
+                className="w-full px-4 py-2.5 bg-white/5 border border-border rounded-lg text-muted text-sm cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Fecha de Ingreso:</label>
+              <label className="block text-sm font-semibold text-text mb-2">Fecha de Ingreso:</label>
               <input
                 type="text"
                 disabled
                 value={new Date().toLocaleDateString()}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
+                className="w-full px-4 py-2.5 bg-white/5 border border-border rounded-lg text-muted text-sm cursor-not-allowed"
               />
             </div>
           </div>
@@ -162,23 +162,23 @@ export default function ReceiveMerchandisePage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Producto</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Número de Lote</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 w-32">Unidad</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Cantidad</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Vencimiento</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900 w-12"></th>
+                <tr className="bg-white/5 border-b border-border">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-text">Producto</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-text">Número de Lote</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-text w-32">Unidad</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-text">Cantidad</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-text">Vencimiento</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-text w-12"></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, idx) => (
-                  <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition">
+                  <tr key={row.id} className="border-b border-border hover:bg-white/5 transition">
                     <td className="px-4 py-3">
                       <select
                         value={row.productId}
                         onChange={(e) => handleRowChange(row.id, "productId", e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
+                        className="w-full px-3 py-2 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
                       >
                         <option value="">Selecciona producto</option>
                         {products.map((p) => (
@@ -196,7 +196,7 @@ export default function ReceiveMerchandisePage() {
                         onChange={(e) =>
                           handleRowChange(row.id, "batchNumber", e.target.value)
                         }
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400"
+                        className="w-full px-3 py-2 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm placeholder-muted focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-4 py-3 w-32">
@@ -205,7 +205,7 @@ export default function ReceiveMerchandisePage() {
                         onChange={(e) =>
                           handleRowChange(row.id, "unitType", e.target.value as "UNIT" | "BOX" | "KG" | "LITER")
                         }
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
+                        className="w-full px-3 py-2 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400 appearance-none cursor-pointer"
                       >
                         <option value="UNIT">Unidad</option>
                         <option value="BOX">Caja</option>
@@ -220,7 +220,7 @@ export default function ReceiveMerchandisePage() {
                         step={row.unitType === "UNIT" || row.unitType === "BOX" ? "1" : "0.01"}
                         value={row.quantity}
                         onChange={(e) => handleRowChange(row.id, "quantity", e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400"
+                        className="w-full px-3 py-2 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm placeholder-muted focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -228,7 +228,7 @@ export default function ReceiveMerchandisePage() {
                         type="date"
                         value={row.expiryDate}
                         onChange={(e) => handleRowChange(row.id, "expiryDate", e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400"
+                        className="w-full px-3 py-2 bg-surface backdrop-blur-md border border-border rounded-lg text-text text-sm focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -236,7 +236,7 @@ export default function ReceiveMerchandisePage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveRow(row.id)}
-                          className="text-red-600 hover:text-red-800 font-semibold transition"
+                          className="text-danger hover:text-red-800 font-semibold transition"
                         >
                           ✕
                         </button>
@@ -253,14 +253,14 @@ export default function ReceiveMerchandisePage() {
             <button
               type="button"
               onClick={handleAddRow}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-2.5 px-4 rounded-lg transition"
+              className="flex-1 bg-white/15 hover:bg-white/20 text-text font-medium py-2.5 px-4 rounded-lg transition"
             >
               + Agregar Lote
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-black hover:bg-gray-900 disabled:bg-gray-400 text-white font-medium py-2.5 px-4 rounded-lg transition"
+              className="flex-1 bg-primary hover:brightness-110 disabled:opacity-40 text-white font-medium py-2.5 px-4 rounded-lg transition"
             >
               {loading ? "Guardando..." : "✓ Guardar Todos"}
             </button>

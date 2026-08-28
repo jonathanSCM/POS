@@ -18,15 +18,15 @@ export function CustomerPicker() {
 
   if (customer) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="bg-white/5 border border-border rounded-lg p-4">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm text-gray-600">Cliente:</p>
-            <p className="font-semibold text-black">{customer.name}</p>
+            <p className="text-sm text-muted">Cliente:</p>
+            <p className="font-semibold text-text">{customer.name}</p>
           </div>
           <button
             onClick={() => setCustomer(null)}
-            className="text-red-600 hover:text-red-800 text-sm font-medium"
+            className="text-danger hover:text-red-800 text-sm font-medium"
           >
             Cambiar
           </button>
@@ -43,12 +43,12 @@ export function CustomerPicker() {
         value={customerName}
         onChange={(e) => setCustomerName(e.target.value)}
         onKeyPress={(e) => e.key === "Enter" && handleSetCustomer()}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black bg-white placeholder-gray-400 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400"
+        className="w-full px-4 py-2 border border-border rounded-lg text-text bg-surface backdrop-blur-md placeholder-muted focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400"
       />
       <button
         onClick={handleSetCustomer}
         disabled={!customerName.trim()}
-        className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-900 rounded-lg font-medium transition"
+        className="w-full px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg font-medium transition"
       >
         Agregar Cliente
       </button>

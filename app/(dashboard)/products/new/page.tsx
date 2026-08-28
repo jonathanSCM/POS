@@ -63,11 +63,11 @@ export default function NewProductPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Nuevo Producto</h1>
+      <h1 className="text-3xl font-bold text-text mb-8">Nuevo Producto</h1>
 
-      <div className="bg-white rounded-lg shadow p-8 max-w-2xl">
+      <div className="bg-surface backdrop-blur-md rounded-lg shadow p-8 max-w-2xl">
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-red-100 border border-red-400 text-danger px-4 py-3 rounded">
             {error}
           </div>
         )}
@@ -75,18 +75,18 @@ export default function NewProductPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-2">SKU</label>
+              <label className="block text-muted font-medium mb-2">SKU</label>
               <input
                 type="text"
                 name="sku"
                 value={formData.sku}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-muted font-medium mb-2">
                 Código de Barras
               </label>
               <input
@@ -94,13 +94,13 @@ export default function NewProductPage() {
                 name="barcode"
                 value={formData.barcode}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Nombre
             </label>
             <input
@@ -109,12 +109,12 @@ export default function NewProductPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Descripción
             </label>
             <textarea
@@ -122,19 +122,19 @@ export default function NewProductPage() {
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Categoría
             </label>
             <select
               name="categoryId"
               value={formData.categoryId}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             >
               <option value="">Seleccionar categoría</option>
               {categories.map((cat) => (
@@ -147,7 +147,7 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-muted font-medium mb-2">
                 Precio Costo
               </label>
               <input
@@ -157,11 +157,11 @@ export default function NewProductPage() {
                 value={formData.costPrice}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-muted font-medium mb-2">
                 Precio Venta
               </label>
               <input
@@ -171,18 +171,18 @@ export default function NewProductPage() {
                 value={formData.salePrice}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-muted font-medium mb-2">
                 Tipo
               </label>
               <select
                 name="unitType"
                 value={formData.unitType}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
               >
                 <option value="UNIT">Unidad</option>
                 <option value="KG">Kg</option>
@@ -193,7 +193,7 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Stock Mínimo
             </label>
             <input
@@ -202,7 +202,7 @@ export default function NewProductPage() {
               name="minStockAlert"
               value={formData.minStockAlert}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -210,14 +210,14 @@ export default function NewProductPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition"
+              className="flex-1 px-4 py-2 bg-primary hover:bg-primary disabled:opacity-40 text-white rounded-lg transition"
             >
               {isLoading ? "Guardando..." : "Crear Producto"}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg transition"
+              className="flex-1 px-4 py-2 bg-white/15 hover:bg-white/25 text-text rounded-lg transition"
             >
               Cancelar
             </button>

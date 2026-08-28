@@ -17,39 +17,39 @@ export default async function PurchaseOrdersPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Órdenes de Compra</h1>
+        <h1 className="text-4xl font-bold text-text">Órdenes de Compra</h1>
         <Link
           href="/purchase-orders/new"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+          className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg"
         >
           + Nueva OC
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-surface backdrop-blur-md rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Código
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Proveedor
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Estado
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Productos
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Acción
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {orders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
+              <tr key={order.id} className="hover:bg-white/5">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {order.code}
                 </td>
@@ -75,14 +75,14 @@ export default async function PurchaseOrdersPage() {
                     <form action={handleReceive.bind(null, order.id)} method="POST">
                       <button
                         type="submit"
-                        className="text-green-600 hover:text-green-700 font-medium"
+                        className="text-success hover:text-success font-medium"
                       >
                         Recibir
                       </button>
                     </form>
                   )}
                   {order.status === "RECEIVED" && (
-                    <span className="text-gray-500">Completada</span>
+                    <span className="text-muted">Completada</span>
                   )}
                 </td>
               </tr>
@@ -92,7 +92,7 @@ export default async function PurchaseOrdersPage() {
       </div>
 
       {orders.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-muted">
           <p>No hay órdenes de compra.</p>
         </div>
       )}

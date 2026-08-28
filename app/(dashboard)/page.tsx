@@ -100,12 +100,12 @@ export default async function DashboardPage() {
   const filteredModules = modules.filter((m) => m.roles.includes(user.role))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-16">
-          <h1 className="text-5xl font-bold text-black mb-3">Bienvenido, {user.name}</h1>
-          <p className="text-lg text-gray-600">Selecciona un módulo para comenzar</p>
+          <h1 className="text-5xl font-bold text-text mb-3 font-display">Bienvenido, {user.name}</h1>
+          <p className="text-lg text-muted">Selecciona un módulo para comenzar</p>
         </div>
 
         {/* Modules Grid */}
@@ -114,14 +114,14 @@ export default async function DashboardPage() {
             <Link
               key={module.id}
               href={module.href}
-              className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition hover:-translate-y-1 cursor-pointer group"
+              className="glass rounded-2xl p-6 shadow-theme hover:shadow-lg transition hover:-translate-y-1 cursor-pointer group hover:border-primary-2/50"
             >
-              <div className="w-16 h-16 rounded-xl flex items-center justify-center text-4xl mb-4 group-hover:scale-110 transition bg-gray-100">
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center text-4xl mb-4 group-hover:scale-110 transition glass-2">
                 {module.icon}
               </div>
-              <h3 className="text-xl font-bold text-black mb-2">{module.title}</h3>
-              <p className="text-gray-600 text-sm mb-4">{module.description}</p>
-              <div className="text-xs font-semibold text-gray-500">
+              <h3 className="text-xl font-bold text-text mb-2">{module.title}</h3>
+              <p className="text-muted text-sm mb-4">{module.description}</p>
+              <div className="text-xs font-semibold text-primary-2">
                 Click para acceder →
               </div>
             </Link>
@@ -129,8 +129,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-16 pt-12 border-t border-gray-300">
-          <h2 className="text-2xl font-bold text-black mb-8">Resumen Rápido</h2>
+        <div className="mt-16 pt-12 border-t border-border">
+          <h2 className="text-2xl font-bold text-text mb-8 font-display">Resumen Rápido</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatBox title="Hoy" value="$0.00" subtitle="Total de ventas" />
             <StatBox title="Productos" value="4" subtitle="En el sistema" />
@@ -153,10 +153,10 @@ function StatBox({
   subtitle: string
 }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
-      <p className="text-gray-600 text-sm font-semibold mb-2">{title}</p>
-      <p className="text-4xl font-bold text-black mb-1">{value}</p>
-      <p className="text-gray-600 text-xs">{subtitle}</p>
+    <div className="glass rounded-2xl p-6 shadow-theme">
+      <p className="text-muted text-sm font-semibold mb-2">{title}</p>
+      <p className="text-4xl font-bold text-primary-2 mb-1 font-display">{value}</p>
+      <p className="text-muted text-xs">{subtitle}</p>
     </div>
   )
 }

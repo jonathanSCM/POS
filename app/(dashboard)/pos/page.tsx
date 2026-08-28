@@ -236,10 +236,10 @@ export default function POSPage() {
 
   if (completedSale) {
     return (
-      <div className="min-h-screen bg-white p-8 print:min-h-0 print:p-0">
+      <div className="min-h-screen bg-surface backdrop-blur-md p-8 print:min-h-0 print:p-0">
         <div className="max-w-2xl mx-auto">
           {/* Factura */}
-          <div id="receipt" className="bg-white text-black border-4 border-black p-6 mb-8 font-mono text-sm max-w-2xl mx-auto">
+          <div id="receipt" className="bg-surface backdrop-blur-md text-text border-4 border-black p-6 mb-8 font-mono text-sm max-w-2xl mx-auto">
             {/* Encabezado */}
             <div className="text-center mb-4 border-b-2 border-black pb-4">
               <h1 className="text-xl font-bold">POS SISTEMA</h1>
@@ -289,7 +289,7 @@ export default function POSPage() {
                 <span className="w-20 text-right">Total</span>
               </div>
               {completedSale.lines.map((line) => (
-                <div key={line.id} className="flex justify-between border-b border-gray-300 pb-2 mb-2">
+                <div key={line.id} className="flex justify-between border-b border-border pb-2 mb-2">
                   <span className="flex-1">{line.productName}</span>
                   <span className="w-12 text-center">{line.quantity}</span>
                   <span className="w-16 text-right">${parseFloat(line.unitPrice).toFixed(2)}</span>
@@ -338,19 +338,19 @@ export default function POSPage() {
           <div className="flex flex-col gap-3 print:hidden">
             <button
               onClick={() => window.print()}
-              className="w-full px-6 py-3 bg-black hover:bg-gray-900 text-white rounded-lg font-bold text-lg"
+              className="w-full px-6 py-3 bg-primary hover:brightness-110 text-white rounded-lg font-bold text-lg"
             >
               🖨️ Imprimir Factura
             </button>
             <button
               onClick={() => setCompletedSale(null)}
-              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg"
+              className="w-full px-6 py-3 bg-success hover:brightness-110 text-white rounded-lg font-bold text-lg"
             >
               ✓ Nueva Venta
             </button>
             <Link
               href="/sales"
-              className="w-full px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold text-lg text-center"
+              className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg font-bold text-lg text-center"
             >
               📋 Historial de Ventas
             </Link>
@@ -361,11 +361,11 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
+    <div className="min-h-screen bg-surface backdrop-blur-md p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-black">Punto de Venta</h1>
-          <Link href="/" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium">
+          <h1 className="text-3xl font-bold text-text">Punto de Venta</h1>
+          <Link href="/" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium">
             ← Dashboard
           </Link>
         </div>
@@ -379,31 +379,31 @@ export default function POSPage() {
 
           {/* Right: Cliente y Pago */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white border border-gray-300 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-black mb-4">Cliente</h2>
+            <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-text mb-4">Cliente</h2>
               <CustomerPicker />
             </div>
 
             {/* Total y Pago */}
-            <div className="bg-white border border-gray-300 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-black mb-4">Resumen</h2>
+            <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-text mb-4">Resumen</h2>
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-lg">
-                  <span className="text-gray-600">Total:</span>
-                  <span className="font-bold text-black text-3xl">${total.toFixed(2)}</span>
+                  <span className="text-muted">Total:</span>
+                  <span className="font-bold text-text text-3xl">${total.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Seleccionar Método de Pago */}
               <div className="space-y-3 mb-6">
-                <p className="text-sm font-bold text-gray-700">Selecciona Método de Pago:</p>
+                <p className="text-sm font-bold text-muted">Selecciona Método de Pago:</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setSelectedPaymentMethod("CASH")}
                     className={`px-3 py-3 rounded-lg font-bold text-sm transition ${
                       selectedPaymentMethod === "CASH"
-                        ? "bg-green-600 text-white border-2 border-green-800"
-                        : "bg-gray-100 text-black border-2 border-gray-300 hover:bg-gray-200"
+                        ? "bg-success text-white border-2 border-green-800"
+                        : "bg-white/10 text-text border-2 border-border hover:bg-white/15"
                     }`}
                   >
                     💵 Efectivo
@@ -412,8 +412,8 @@ export default function POSPage() {
                     onClick={() => setSelectedPaymentMethod("CARD")}
                     className={`px-3 py-3 rounded-lg font-bold text-sm transition ${
                       selectedPaymentMethod === "CARD"
-                        ? "bg-blue-600 text-white border-2 border-blue-800"
-                        : "bg-gray-100 text-black border-2 border-gray-300 hover:bg-gray-200"
+                        ? "bg-primary text-white border-2 border-blue-800"
+                        : "bg-white/10 text-text border-2 border-border hover:bg-white/15"
                     }`}
                   >
                     💳 Tarjeta
@@ -423,7 +423,7 @@ export default function POSPage() {
                     className={`px-3 py-3 rounded-lg font-bold text-sm transition ${
                       selectedPaymentMethod === "QR"
                         ? "bg-purple-600 text-white border-2 border-purple-800"
-                        : "bg-gray-100 text-black border-2 border-gray-300 hover:bg-gray-200"
+                        : "bg-white/10 text-text border-2 border-border hover:bg-white/15"
                     }`}
                   >
                     📱 QR
@@ -433,7 +433,7 @@ export default function POSPage() {
                     className={`px-3 py-3 rounded-lg font-bold text-sm transition ${
                       selectedPaymentMethod === "TRANSFER"
                         ? "bg-amber-600 text-white border-2 border-amber-800"
-                        : "bg-gray-100 text-black border-2 border-gray-300 hover:bg-gray-200"
+                        : "bg-white/10 text-text border-2 border-border hover:bg-white/15"
                     }`}
                   >
                     🏦 Transferencia
@@ -442,8 +442,8 @@ export default function POSPage() {
               </div>
 
               {/* Facturación */}
-              <div className="space-y-3 mb-6 border-t border-gray-300 pt-4">
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+              <div className="space-y-3 mb-6 border-t border-border pt-4">
+                <label className="flex items-center gap-2 text-sm font-bold text-muted cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isInvoiced}
@@ -459,14 +459,14 @@ export default function POSPage() {
                       placeholder="Razón social"
                       value={customerBusinessName}
                       onChange={(e) => setCustomerBusinessName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                     />
                     <input
                       type="text"
                       placeholder="NIT / Documento"
                       value={customerTaxId}
                       onChange={(e) => setCustomerTaxId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                     />
                   </div>
                 )}
@@ -476,35 +476,35 @@ export default function POSPage() {
               <button
                 onClick={handleCompleteSale}
                 disabled={isProcessing || lines.length === 0 || !selectedPaymentMethod}
-                className="w-full px-4 py-4 bg-black hover:bg-gray-900 disabled:bg-gray-400 text-white rounded-lg font-bold text-lg transition mb-6"
+                className="w-full px-4 py-4 bg-primary hover:brightness-110 disabled:opacity-40 text-white rounded-lg font-bold text-lg transition mb-6"
               >
                 ✓ Completar Venta
               </button>
 
               {/* Acciones */}
-              <div className="border-t border-gray-300 pt-6 space-y-3">
+              <div className="border-t border-border pt-6 space-y-3">
                 <button
                   onClick={handleHoldSale}
                   disabled={isProcessing || lines.length === 0}
-                  className="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg font-medium"
+                  className="w-full px-4 py-2 bg-white/15 hover:bg-white/25 text-text rounded-lg font-medium"
                 >
                   ⏸️ Poner en Espera ({heldSales.length})
                 </button>
                 {showHeldSales && (
-                  <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto">
+                  <div className="bg-white/5 rounded-lg p-3 max-h-48 overflow-y-auto">
                     {heldSales.map((sale) => (
-                      <div key={sale.id} className="flex justify-between items-center mb-2 p-2 bg-white rounded">
-                        <span className="text-sm text-black">{sale.customerName || "Anónimo"}</span>
+                      <div key={sale.id} className="flex justify-between items-center mb-2 p-2 bg-surface backdrop-blur-md rounded">
+                        <span className="text-sm text-text">{sale.customerName || "Anónimo"}</span>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleResumeSale(sale)}
-                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded"
+                            className="px-2 py-1 text-xs bg-primary text-white rounded"
                           >
                             Reanudar
                           </button>
                           <button
                             onClick={() => handleCancelHeldSale(sale.id)}
-                            className="px-2 py-1 text-xs bg-red-600 text-white rounded"
+                            className="px-2 py-1 text-xs bg-danger text-white rounded"
                           >
                             Cancelar
                           </button>
@@ -515,7 +515,7 @@ export default function POSPage() {
                 )}
                 <button
                   onClick={() => setShowHeldSales(!showHeldSales)}
-                  className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium text-sm"
+                  className="w-full px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium text-sm"
                 >
                   {showHeldSales ? "▼ Ocultar" : "▲ Ver Ventas en Espera"}
                 </button>

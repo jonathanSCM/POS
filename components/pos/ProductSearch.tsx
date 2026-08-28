@@ -65,19 +65,19 @@ export function ProductSearch({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => query && setIsOpen(true)}
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black bg-white placeholder-gray-400 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-400"
+        className="w-full px-4 py-3 border border-border rounded-lg text-text bg-surface backdrop-blur-md placeholder-muted focus:outline-none focus:border-primary-2 focus:ring-1 focus:ring-gray-400"
       />
 
       {isOpen && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-surface backdrop-blur-md border border-border rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
           {filtered.map((product) => (
             <button
               key={product.id}
               onClick={() => handleSelect(product)}
-              className="w-full text-left px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-0 transition"
+              className="w-full text-left px-4 py-3 hover:bg-white/10 border-b border-border last:border-0 transition"
             >
-              <div className="font-medium text-black">{product.name}</div>
-              <div className="text-sm text-gray-600">
+              <div className="font-medium text-text">{product.name}</div>
+              <div className="text-sm text-muted">
                 SKU: {product.sku} • ${product.salePrice.toString()} • {product.unitType}
               </div>
             </button>
@@ -86,7 +86,7 @@ export function ProductSearch({
       )}
 
       {isOpen && query && filtered.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 text-center text-gray-600">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-surface backdrop-blur-md border border-border rounded-lg shadow-lg z-50 p-4 text-center text-muted">
           Sin resultados
         </div>
       )}

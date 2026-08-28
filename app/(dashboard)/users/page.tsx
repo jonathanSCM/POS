@@ -138,25 +138,25 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Usuarios</h1>
-            <p className="text-gray-600">Gestiona los usuarios del sistema</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Usuarios</h1>
+            <p className="text-muted">Gestiona los usuarios del sistema</p>
           </div>
-          <Link href="/" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
+          <Link href="/" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
             ← Dashboard
           </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Crear usuario */}
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-black mb-6">Nuevo Usuario</h2>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-6">Nuevo Usuario</h2>
             <form onSubmit={handleCreateUser} className="space-y-4">
               {createError && (
-                <div className="text-sm text-red-700 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
+                <div className="text-sm text-danger bg-red-100 border border-red-300 rounded-lg px-3 py-2">
                   {createError}
                 </div>
               )}
@@ -165,7 +165,7 @@ export default function UsersPage() {
                 placeholder="Email"
                 value={newUser.email}
                 onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg text-text placeholder-muted focus:outline-none"
                 disabled={loading}
               />
               <input
@@ -173,7 +173,7 @@ export default function UsersPage() {
                 placeholder="Nombre"
                 value={newUser.name}
                 onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg text-text placeholder-muted focus:outline-none"
                 disabled={loading}
               />
               <input
@@ -181,13 +181,13 @@ export default function UsersPage() {
                 placeholder="Contraseña (mín. 6 caracteres)"
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg text-text placeholder-muted focus:outline-none"
                 disabled={loading}
               />
               <select
                 value={newUser.role}
                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none"
+                className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
                 disabled={loading}
               >
                 <option value="ADMIN">Administrador</option>
@@ -197,7 +197,7 @@ export default function UsersPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full px-4 py-2 bg-black hover:bg-gray-900 disabled:bg-gray-400 text-white rounded-lg font-bold transition"
+                className="w-full px-4 py-2 bg-primary hover:brightness-110 disabled:opacity-40 text-white rounded-lg font-bold transition"
               >
                 {loading ? "Creando..." : "Crear Usuario"}
               </button>
@@ -205,15 +205,15 @@ export default function UsersPage() {
           </div>
 
           {/* Lista de usuarios */}
-          <div className="lg:col-span-2 bg-white border border-gray-300 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-black mb-6">Usuarios ({users.length})</h2>
+          <div className="lg:col-span-2 bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-6">Usuarios ({users.length})</h2>
             <div className="space-y-3 max-h-[32rem] overflow-y-auto">
               {users.map((user) => (
-                <div key={user.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div key={user.id} className="p-4 bg-white/5 rounded-lg border border-border">
                   {editingId === user.id ? (
                     <div className="space-y-3">
                       {editError && (
-                        <div className="text-sm text-red-700 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
+                        <div className="text-sm text-danger bg-red-100 border border-red-300 rounded-lg px-3 py-2">
                           {editError}
                         </div>
                       )}
@@ -222,19 +222,19 @@ export default function UsersPage() {
                         placeholder="Nombre"
                         value={editForm.name}
                         onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                       />
                       <input
                         type="email"
                         placeholder="Email"
                         value={editForm.email}
                         onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                       />
                       <select
                         value={editForm.role}
                         onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                       >
                         <option value="ADMIN">Administrador</option>
                         <option value="MANAGER">Gerente</option>
@@ -245,27 +245,27 @@ export default function UsersPage() {
                         placeholder="Nueva contraseña (dejar en blanco para no cambiarla)"
                         value={editForm.password}
                         onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black text-sm"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-text text-sm"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveEdit(user.id)}
                           disabled={editLoading}
-                          className="flex-1 px-3 py-2 bg-black hover:bg-gray-900 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium"
+                          className="flex-1 px-3 py-2 bg-primary hover:brightness-110 disabled:opacity-40 text-white rounded-lg text-sm font-medium"
                         >
                           {editLoading ? "Guardando..." : "Guardar"}
                         </button>
                         <button
                           onClick={cancelEdit}
                           disabled={editLoading}
-                          className="flex-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
+                          className="flex-1 px-3 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg text-sm font-medium"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
                           disabled={editLoading}
-                          className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium"
+                          className="px-3 py-2 bg-red-100 hover:bg-red-200 text-danger rounded-lg text-sm font-medium"
                         >
                           Eliminar
                         </button>
@@ -274,16 +274,16 @@ export default function UsersPage() {
                   ) : (
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-semibold text-black">{user.name || "(sin nombre)"}</p>
-                        <p className="text-xs text-gray-600">{user.email || "(sin email)"}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="font-semibold text-text">{user.name || "(sin nombre)"}</p>
+                        <p className="text-xs text-muted">{user.email || "(sin email)"}</p>
+                        <p className="text-xs text-muted mt-1">
                           {user.role === "ADMIN" ? "👑 Admin" : user.role === "MANAGER" ? "👔 Gerente" : "👨‍💼 Cajero"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => startEdit(user)}
-                          className="px-3 py-1 text-xs font-medium rounded bg-gray-200 text-gray-900 hover:bg-gray-300 transition"
+                          className="px-3 py-1 text-xs font-medium rounded bg-white/15 text-text hover:bg-white/20 transition"
                         >
                           Editar
                         </button>
@@ -291,8 +291,8 @@ export default function UsersPage() {
                           onClick={() => handleToggleActive(user.id, user.active)}
                           className={`px-3 py-1 text-xs font-medium rounded transition ${
                             user.active
-                              ? "bg-green-100 text-green-700 hover:bg-green-200"
-                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                              ? "bg-green-100 text-success hover:bg-green-200"
+                              : "bg-red-100 text-danger hover:bg-red-200"
                           }`}
                         >
                           {user.active ? "Activo" : "Inactivo"}

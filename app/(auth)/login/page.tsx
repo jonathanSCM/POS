@@ -36,23 +36,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background geometric accent */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-gray-100 rounded-full -translate-x-1/2 -translate-y-1/2 opacity-30"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-black rounded-full translate-x-1/2 translate-y-1/2 opacity-5"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 rounded-full -translate-x-1/2 -translate-y-1/2 opacity-40 bg-primary blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full translate-x-1/2 translate-y-1/2 opacity-30 bg-primary-2 blur-3xl"></div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md glass rounded-2xl p-8 shadow-theme">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <div className="inline-block mb-6">
-            <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br from-primary to-accent">
               <span className="text-white text-2xl font-bold">POS</span>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-black mb-2">
+          <h1 className="text-4xl font-bold text-text mb-2 font-display">
             Punto de Venta
           </h1>
-          <p className="text-gray-600 font-light">
+          <p className="text-muted font-light">
             Accede a tu sistema de ventas
           </p>
         </div>
@@ -60,27 +60,27 @@ export default function LoginPage() {
         {/* Form Card */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+            <div className="bg-danger/10 border border-danger/40 text-danger px-4 py-3 rounded-xl text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-black font-medium mb-3 text-sm">
+            <label className="block text-text font-medium mb-3 text-sm">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition text-black placeholder-gray-400"
+              className="w-full px-4 py-3 transition"
               placeholder="admin@pos.local"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="block text-black font-medium mb-3 text-sm">
+            <label className="block text-text font-medium mb-3 text-sm">
               Contraseña
             </label>
             <div className="relative">
@@ -88,7 +88,7 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition text-black placeholder-gray-400"
+                className="w-full px-4 py-3 pr-12 transition"
                 placeholder="••••••••"
                 disabled={isLoading}
               />
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary-2 transition"
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? (
@@ -117,30 +117,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black hover:bg-gray-900 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 mt-8"
+            className="btn-primary w-full py-3 px-4 mt-8"
           >
             {isLoading ? "Iniciando..." : "Iniciar Sesión"}
           </button>
         </form>
-
-        {/* Credentials Info */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-xs text-gray-600 uppercase tracking-wider mb-4">
-            Demo • Credenciales de prueba
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-600 mb-1">Admin</p>
-              <p className="text-xs font-mono text-black break-all">admin@pos.local</p>
-              <p className="text-xs font-mono text-gray-600 mt-1">admin123</p>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-600 mb-1">Cajero</p>
-              <p className="text-xs font-mono text-black break-all">cashier@pos.local</p>
-              <p className="text-xs font-mono text-gray-600 mt-1">cashier123</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

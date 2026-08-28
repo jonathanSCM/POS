@@ -17,16 +17,16 @@ export default async function SalesPage() {
   const totalCount = sales.length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Historial de Ventas</h1>
-            <p className="text-gray-600">Últimas {totalCount} ventas completadas</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Historial de Ventas</h1>
+            <p className="text-muted">Últimas {totalCount} ventas completadas</p>
           </div>
           <Link
             href="/"
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition"
+            className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
           >
             ← Dashboard
           </Link>
@@ -34,56 +34,56 @@ export default async function SalesPage() {
 
         {/* Resumen */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Total Ventas</p>
-            <p className="text-3xl font-bold text-black">${totalSales.toFixed(2)}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Total Ventas</p>
+            <p className="text-3xl font-bold text-text">${totalSales.toFixed(2)}</p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Cantidad de Ventas</p>
-            <p className="text-3xl font-bold text-black">{totalCount}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Cantidad de Ventas</p>
+            <p className="text-3xl font-bold text-text">{totalCount}</p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Ticket Promedio</p>
-            <p className="text-3xl font-bold text-black">
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Ticket Promedio</p>
+            <p className="text-3xl font-bold text-text">
               ${totalCount > 0 ? totalSales.div(totalCount).toFixed(2) : "0.00"}
             </p>
           </div>
         </div>
 
         {/* Tabla de ventas */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-surface backdrop-blur-md rounded-2xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-100 border-b-2 border-gray-300">
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Código</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Cliente</th>
-                  <th className="px-6 py-3 text-center text-sm font-bold text-black">Artículos</th>
-                  <th className="px-6 py-3 text-center text-sm font-bold text-black">Monto</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Método</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Fecha</th>
-                  <th className="px-6 py-3 text-center text-sm font-bold text-black">Acción</th>
+                <tr className="bg-white/10 border-b-2 border-border">
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Código</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Cliente</th>
+                  <th className="px-6 py-3 text-center text-sm font-bold text-text">Artículos</th>
+                  <th className="px-6 py-3 text-center text-sm font-bold text-text">Monto</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Método</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Fecha</th>
+                  <th className="px-6 py-3 text-center text-sm font-bold text-text">Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {sales.map((sale, idx) => (
                   <tr
                     key={sale.id}
-                    className={`border-b border-gray-200 hover:bg-gray-50 transition ${
-                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    className={`border-b border-border hover:bg-white/5 transition ${
+                      idx % 2 === 0 ? "bg-surface backdrop-blur-md" : "bg-white/5"
                     }`}
                   >
-                    <td className="px-6 py-4 text-sm font-mono font-semibold text-black">{sale.code}</td>
-                    <td className="px-6 py-4 text-sm text-black">
+                    <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{sale.code}</td>
+                    <td className="px-6 py-4 text-sm text-text">
                       {sale.customerName || "Cliente Anónimo"}
                     </td>
-                    <td className="px-6 py-4 text-center text-sm text-black font-medium">
+                    <td className="px-6 py-4 text-center text-sm text-text font-medium">
                       {sale.lines.length}
                     </td>
-                    <td className="px-6 py-4 text-center text-sm font-bold text-black">
+                    <td className="px-6 py-4 text-center text-sm font-bold text-text">
                       ${new Decimal(sale.total).toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-black">
+                    <td className="px-6 py-4 text-sm text-text">
                       {sale.payments[0]?.method === "CASH"
                         ? "💵 Efectivo"
                         : sale.payments[0]?.method === "CARD"
@@ -92,13 +92,13 @@ export default async function SalesPage() {
                         ? "📱 QR"
                         : "🏦 Transferencia"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted">
                       {new Date(sale.createdAt).toLocaleDateString()} {new Date(sale.createdAt).toLocaleTimeString()}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <Link
                         href={`/sales/${sale.id}/receipt`}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-primary-2 hover:text-blue-800 text-sm font-medium"
                       >
                         Ver
                       </Link>

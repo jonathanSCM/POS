@@ -1,19 +1,152 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #190f28;
+  --foreground: #f6f2ff;
+
+  --color-bg: #190f28;
+  --color-surface: rgba(255, 255, 255, 0.09);
+  --color-surface-2: rgba(255, 255, 255, 0.14);
+  --color-border: rgba(255, 255, 255, 0.18);
+  --color-text: #f6f2ff;
+  --color-muted: #dccff5;
+  --color-primary: #8b5cf6;
+  --color-primary-2: #2fe3a6;
+  --color-accent: #c084fc;
+  --color-ring: rgba(47, 227, 166, 0.45);
+  --color-danger: #fb7185;
+  --color-success: #34d399;
+  --color-warning: #ffb020;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-primary: var(--color-primary);
+  --color-primary-2: var(--color-primary-2);
+  --color-accent: var(--color-accent);
+  --color-ring: var(--color-ring);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-sora);
+  --radius-theme: 16px;
+  --shadow-theme: 0 20px 45px -20px rgba(0, 0, 0, 0.7);
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(160deg, #241634 0%, #190f28 55%, #110a1d 100%);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), 'Segoe UI', Roboto, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* ── Glass surface utilities ── */
+.glass {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-2 {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: filter 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 4px var(--color-ring);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-accent {
+  background: var(--color-primary-2);
+  color: #0a1f16;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: filter 0.2s, box-shadow 0.2s;
+}
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 4px var(--color-ring);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+.btn-danger {
+  background: rgba(251, 113, 133, 0.16);
+  color: var(--color-danger);
+  border: 1px solid rgba(251, 113, 133, 0.35);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger);
+  color: white;
+}
+
+input, select, textarea {
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 12px;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 0.6;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-ring);
+  border-color: var(--color-primary-2);
+}
+
+table {
+  color: var(--color-text);
+}
+thead {
+  background: rgba(0, 0, 0, 0.14);
+}
+th, td {
+  border-color: var(--color-border) !important;
 }

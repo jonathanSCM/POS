@@ -78,18 +78,18 @@ export default function NewPurchaseOrderPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Nueva Orden de Compra</h1>
+      <h1 className="text-3xl font-bold text-text mb-8">Nueva Orden de Compra</h1>
 
-      <div className="bg-white rounded-lg shadow p-8">
+      <div className="bg-surface backdrop-blur-md rounded-lg shadow p-8">
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-red-100 border border-red-400 text-danger px-4 py-3 rounded">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Proveedor
             </label>
             <select
@@ -98,7 +98,7 @@ export default function NewPurchaseOrderPage() {
                 setFormData({ ...formData, supplierId: e.target.value })
               }
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-blue-500"
             >
               <option value="">Seleccionar proveedor</option>
               {suppliers.map((sup) => (
@@ -110,7 +110,7 @@ export default function NewPurchaseOrderPage() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-muted font-medium mb-2">
               Productos
             </label>
             <div className="space-y-3">
@@ -119,7 +119,7 @@ export default function NewPurchaseOrderPage() {
                   <select
                     value={line.productId}
                     onChange={(e) => updateLine(idx, "productId", e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="flex-1 px-4 py-2 border border-border rounded-lg text-sm"
                   >
                     <option value="">Seleccionar producto</option>
                     {products.map((prod) => (
@@ -134,7 +134,7 @@ export default function NewPurchaseOrderPage() {
                     placeholder="Cantidad"
                     value={line.quantity}
                     onChange={(e) => updateLine(idx, "quantity", e.target.value)}
-                    className="w-24 px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-24 px-4 py-2 border border-border rounded-lg text-sm"
                   />
                   <input
                     type="number"
@@ -142,12 +142,12 @@ export default function NewPurchaseOrderPage() {
                     placeholder="Costo"
                     value={line.unitCost}
                     onChange={(e) => updateLine(idx, "unitCost", e.target.value)}
-                    className="w-24 px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-24 px-4 py-2 border border-border rounded-lg text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => removeLine(idx)}
-                    className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                    className="px-3 py-2 bg-red-100 text-danger rounded hover:bg-red-200"
                   >
                     ✕
                   </button>
@@ -157,21 +157,21 @@ export default function NewPurchaseOrderPage() {
             <button
               type="button"
               onClick={addLine}
-              className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="mt-3 text-primary-2 hover:text-primary-2 text-sm font-medium"
             >
               + Agregar producto
             </button>
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Notas</label>
+            <label className="block text-muted font-medium mb-2">Notas</label>
             <textarea
               value={formData.notes}
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-border rounded-lg"
             />
           </div>
 
@@ -179,14 +179,14 @@ export default function NewPurchaseOrderPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg"
+              className="flex-1 px-4 py-2 bg-primary hover:bg-primary disabled:opacity-40 text-white rounded-lg"
             >
               {isLoading ? "Creando..." : "Crear Orden"}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
+              className="flex-1 px-4 py-2 bg-white/15 hover:bg-white/25 rounded-lg"
             >
               Cancelar
             </button>

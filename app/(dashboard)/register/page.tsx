@@ -92,16 +92,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Caja Registradora</h1>
-            <p className="text-gray-600">Sesión: {session?.status === "OPEN" ? "🟢 ABIERTA" : "🔴 CERRADA"}</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Caja Registradora</h1>
+            <p className="text-muted">Sesión: {session?.status === "OPEN" ? "🟢 ABIERTA" : "🔴 CERRADA"}</p>
           </div>
           <Link
             href="/"
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition"
+            className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
           >
             ← Dashboard
           </Link>
@@ -111,8 +111,8 @@ export default function RegisterPage() {
           <div
             className={`p-4 rounded-lg text-sm font-semibold mb-6 ${
               message.includes("✅")
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
+                ? "bg-success/10 text-success border border-success/30"
+                : "bg-danger/10 text-danger border border-danger/30"
             }`}
           >
             {message}
@@ -122,11 +122,11 @@ export default function RegisterPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Abrir sesión */}
           {!session || session.status === "CLOSED" ? (
-            <div className="bg-white border border-gray-300 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-black mb-6">Abrir Sesión</h2>
+            <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-text mb-6">Abrir Sesión</h2>
               <form onSubmit={handleOpenSession} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted mb-2">
                     Fondo Inicial (Efectivo)
                   </label>
                   <input
@@ -135,25 +135,25 @@ export default function RegisterPage() {
                     value={openingFloat}
                     onChange={(e) => setOpeningFloat(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                    className="w-full px-4 py-3 bg-white/5 border border-border rounded-lg text-text placeholder-muted focus:outline-none focus:border-primary-2"
                     disabled={isLoading}
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !openingFloat}
-                  className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-bold transition"
+                  className="w-full px-4 py-3 bg-success hover:brightness-110 disabled:opacity-40 text-white rounded-lg font-bold transition"
                 >
                   {isLoading ? "Abriendo..." : "Abrir Sesión"}
                 </button>
               </form>
             </div>
           ) : (
-            <div className="bg-white border border-gray-300 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-black mb-6">Cerrar Sesión</h2>
+            <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-text mb-6">Cerrar Sesión</h2>
               <form onSubmit={handleCloseSession} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted mb-2">
                     Efectivo Contado
                   </label>
                   <input
@@ -162,14 +162,14 @@ export default function RegisterPage() {
                     value={actualCash}
                     onChange={(e) => setActualCash(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                    className="w-full px-4 py-3 bg-white/5 border border-border rounded-lg text-text placeholder-muted focus:outline-none focus:border-primary-2"
                     disabled={isLoading}
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !actualCash}
-                  className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg font-bold transition"
+                  className="w-full px-4 py-3 bg-danger hover:brightness-110 disabled:opacity-40 text-white rounded-lg font-bold transition"
                 >
                   {isLoading ? "Cerrando..." : "Cerrar Sesión"}
                 </button>
@@ -179,29 +179,29 @@ export default function RegisterPage() {
 
           {/* Estado de sesión */}
           {session && (
-            <div className="bg-white border border-gray-300 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-black mb-6">Estado de Sesión</h2>
+            <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-text mb-6">Estado de Sesión</h2>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">Fondo Inicial</p>
-                  <p className="text-2xl font-bold text-black">${new Decimal(session.startingCash).toFixed(2)}</p>
+                  <p className="text-sm text-muted">Fondo Inicial</p>
+                  <p className="text-2xl font-bold text-text">${new Decimal(session.startingCash).toFixed(2)}</p>
                 </div>
                 {session.status === "CLOSED" && (
                   <>
                     <div>
-                      <p className="text-sm text-gray-600">Efectivo Esperado</p>
-                      <p className="text-2xl font-bold text-black">${new Decimal(session.expectedCash || 0).toFixed(2)}</p>
+                      <p className="text-sm text-muted">Efectivo Esperado</p>
+                      <p className="text-2xl font-bold text-text">${new Decimal(session.expectedCash || 0).toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Efectivo Contado</p>
-                      <p className="text-2xl font-bold text-black">${new Decimal(session.countedCash || 0).toFixed(2)}</p>
+                      <p className="text-sm text-muted">Efectivo Contado</p>
+                      <p className="text-2xl font-bold text-text">${new Decimal(session.countedCash || 0).toFixed(2)}</p>
                     </div>
                     <div className={`p-3 rounded-lg ${
-                      new Decimal(session.discrepancy || 0).isZero() ? "bg-green-50" : "bg-yellow-50"
+                      new Decimal(session.discrepancy || 0).isZero() ? "bg-success/10" : "bg-warning/10"
                     }`}>
-                      <p className="text-sm text-gray-600">Discrepancia</p>
+                      <p className="text-sm text-muted">Discrepancia</p>
                       <p className={`text-2xl font-bold ${
-                        new Decimal(session.discrepancy || 0).isZero() ? "text-green-700" : "text-yellow-700"
+                        new Decimal(session.discrepancy || 0).isZero() ? "text-success" : "text-warning"
                       }`}>
                         ${new Decimal(session.discrepancy || 0).toFixed(2)}
                       </p>

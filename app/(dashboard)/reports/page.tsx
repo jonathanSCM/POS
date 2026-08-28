@@ -72,18 +72,18 @@ export default async function ReportsPage({
   const exportUrl = `/api/reports/general/export?from=${from.toISOString()}&to=${to.toISOString()}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Reportes</h1>
-            <p className="text-gray-600">Análisis de ventas y resultados</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Reportes</h1>
+            <p className="text-muted">Análisis de ventas y resultados</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/reports/contador" className="px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-lg font-medium transition">
+            <Link href="/reports/contador" className="px-4 py-2 bg-primary hover:brightness-110 text-white rounded-lg font-medium transition">
               📊 Reporte del Contador
             </Link>
-            <Link href="/" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
+            <Link href="/" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
               ← Dashboard
             </Link>
           </div>
@@ -91,73 +91,73 @@ export default async function ReportsPage({
 
         {/* Filtros de fecha */}
         <div className="flex flex-wrap gap-2 mb-8 items-center">
-          <Link href={presetLink("today")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "today" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Hoy</Link>
-          <Link href={presetLink("week")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "week" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Última semana</Link>
-          <Link href={presetLink("month")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "month" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Último mes</Link>
-          <Link href={presetLink("all")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "all" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}>Todo</Link>
-          <a href={exportUrl} className="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
+          <Link href={presetLink("today")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "today" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Hoy</Link>
+          <Link href={presetLink("week")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "week" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Última semana</Link>
+          <Link href={presetLink("month")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "month" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Último mes</Link>
+          <Link href={presetLink("all")} className={`px-4 py-2 rounded-lg text-sm font-medium ${preset === "all" ? "bg-primary text-white" : "bg-surface backdrop-blur-md border border-border text-text"}`}>Todo</Link>
+          <a href={exportUrl} className="ml-auto px-4 py-2 bg-success hover:brightness-110 text-white rounded-lg text-sm font-medium">
             ⬇️ Exportar a Excel
           </a>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Total de Ventas</p>
-            <p className="text-3xl font-bold text-black">${totalSales.toFixed(2)}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Total de Ventas</p>
+            <p className="text-3xl font-bold text-text">${totalSales.toFixed(2)}</p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Cantidad Ventas</p>
-            <p className="text-3xl font-bold text-black">{totalCount}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Cantidad Ventas</p>
+            <p className="text-3xl font-bold text-text">{totalCount}</p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Ticket Promedio</p>
-            <p className="text-3xl font-bold text-black">${avgTicket.toFixed(2)}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Ticket Promedio</p>
+            <p className="text-3xl font-bold text-text">${avgTicket.toFixed(2)}</p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Artículos Vendidos</p>
-            <p className="text-3xl font-bold text-black">{sales.reduce((sum, s) => sum + s.lines.length, 0)}</p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Artículos Vendidos</p>
+            <p className="text-3xl font-bold text-text">{sales.reduce((sum, s) => sum + s.lines.length, 0)}</p>
           </div>
         </div>
 
         {/* Con/Sin factura */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Ventas con Factura</p>
-            <p className="text-2xl font-bold text-black">${invoicedTotal.toFixed(2)} <span className="text-sm text-gray-500 font-normal">({invoicedSales.length} ventas)</span></p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Ventas con Factura</p>
+            <p className="text-2xl font-bold text-text">${invoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({invoicedSales.length} ventas)</span></p>
           </div>
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <p className="text-sm text-gray-600 mb-2">Ventas sin Factura</p>
-            <p className="text-2xl font-bold text-black">${nonInvoicedTotal.toFixed(2)} <span className="text-sm text-gray-500 font-normal">({nonInvoicedSales.length} ventas)</span></p>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Ventas sin Factura</p>
+            <p className="text-2xl font-bold text-text">${nonInvoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({nonInvoicedSales.length} ventas)</span></p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Top Productos */}
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-black mb-6">Productos Más Vendidos</h2>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-6">Productos Más Vendidos</h2>
             <div className="space-y-3">
               {topProducts.map((p, idx) => (
-                <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-black font-medium">{p.productName}</span>
-                  <span className="text-lg font-bold text-black">{p._sum.quantity?.toString() || "0"}</span>
+                <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-text font-medium">{p.productName}</span>
+                  <span className="text-lg font-bold text-text">{p._sum.quantity?.toString() || "0"}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Métodos de Pago */}
-          <div className="bg-white border border-gray-300 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-black mb-6">Métodos de Pago</h2>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-6">Métodos de Pago</h2>
             <div className="space-y-3">
               {paymentMethods.map((p, idx) => (
-                <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-black font-medium">
+                <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-text font-medium">
                     {p.method === "CASH" ? "💵 Efectivo" : p.method === "CARD" ? "💳 Tarjeta" : p.method === "QR" ? "📱 QR" : "🏦 Transferencia"}
                   </span>
                   <div className="text-right">
-                    <p className="font-bold text-black">${new Decimal(p._sum.amount || 0).toFixed(2)}</p>
-                    <p className="text-xs text-gray-600">{p._count} transacciones</p>
+                    <p className="font-bold text-text">${new Decimal(p._sum.amount || 0).toFixed(2)}</p>
+                    <p className="text-xs text-muted">{p._count} transacciones</p>
                   </div>
                 </div>
               ))}

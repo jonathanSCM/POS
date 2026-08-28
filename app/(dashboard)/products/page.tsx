@@ -12,19 +12,19 @@ export default async function ProductsPage() {
     <div className="p-8 max-w-7xl">
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-black mb-2">Productos</h1>
-          <p className="text-gray-600">Gestiona el catálogo de productos</p>
+          <h1 className="text-4xl font-bold text-text mb-2">Productos</h1>
+          <p className="text-muted">Gestiona el catálogo de productos</p>
         </div>
         <div className="flex gap-3">
           <Link
             href="/"
-            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition"
+            className="px-4 py-2.5 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
           >
             ← Dashboard
           </Link>
           <Link
             href="/products/new"
-            className="px-6 py-2.5 bg-black hover:bg-gray-900 text-white rounded-lg font-medium transition"
+            className="px-6 py-2.5 bg-primary hover:brightness-110 text-white rounded-lg font-medium transition"
           >
             + Nuevo Producto
           </Link>
@@ -32,53 +32,53 @@ export default async function ProductsPage() {
       </div>
 
       {/* Tabla de productos */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 border-b border-gray-200">
+      <div className="glass rounded-2xl overflow-hidden shadow-sm">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-white/5 border-b border-border">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 SKU
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Nombre
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Categoría
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Precio Costo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Precio Venta
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Stock
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-muted uppercase">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50 transition">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tr key={product.id} className="hover:bg-white/5 transition">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
                   {product.sku}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text">
                   {product.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
                   {product.category?.name || "-"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text">
                   ${Number(product.costPrice).toFixed(2)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
                   ${Number(product.salePrice).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <span className={new Decimal(product.stockQty).lte(new Decimal(product.minStockAlert)) ? "text-red-600 font-medium" : "text-gray-900"}>
+                  <span className={new Decimal(product.stockQty).lte(new Decimal(product.minStockAlert)) ? "text-danger font-medium" : "text-text"}>
                     {Number(product.stockQty).toFixed(0)} {product.unitType}
                   </span>
                   {new Decimal(product.stockQty).lte(new Decimal(product.minStockAlert)) && (
@@ -88,13 +88,13 @@ export default async function ProductsPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                   <Link
                     href={`/products/${product.id}`}
-                    className="text-gray-600 hover:text-black font-medium transition"
+                    className="text-muted hover:text-text font-medium transition"
                   >
                     Editar
                   </Link>
                   <Link
                     href={`/products/${product.id}/stock-adjust`}
-                    className="text-gray-600 hover:text-black font-medium transition"
+                    className="text-muted hover:text-text font-medium transition"
                   >
                     Ajustar
                   </Link>
@@ -106,8 +106,8 @@ export default async function ProductsPage() {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-200">
-          <p className="text-gray-600">No hay productos. Crea uno nuevo.</p>
+        <div className="text-center py-12 bg-white/5 rounded-2xl border border-border">
+          <p className="text-muted">No hay productos. Crea uno nuevo.</p>
         </div>
       )}
     </div>

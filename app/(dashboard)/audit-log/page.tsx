@@ -27,45 +27,45 @@ export default async function AuditLogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-black mb-2">Auditoría</h1>
-            <p className="text-gray-600">Registro de todas las acciones del sistema</p>
+            <h1 className="text-4xl font-bold text-text mb-2">Auditoría</h1>
+            <p className="text-muted">Registro de todas las acciones del sistema</p>
           </div>
-          <Link href="/" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
+          <Link href="/" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
             ← Dashboard
           </Link>
         </div>
 
-        <div className="bg-white border border-gray-300 rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-surface backdrop-blur-md border border-border rounded-2xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-100 border-b-2 border-gray-300">
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Acción</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Usuario</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Entidad</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Descripción</th>
-                  <th className="px-6 py-3 text-left text-sm font-bold text-black">Fecha</th>
+                <tr className="bg-white/10 border-b-2 border-border">
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Acción</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Usuario</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Entidad</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Descripción</th>
+                  <th className="px-6 py-3 text-left text-sm font-bold text-text">Fecha</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log, idx) => (
                   <tr
                     key={log.id}
-                    className={`border-b border-gray-200 hover:bg-gray-50 transition ${
-                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    className={`border-b border-border hover:bg-white/5 transition ${
+                      idx % 2 === 0 ? "bg-surface backdrop-blur-md" : "bg-white/5"
                     }`}
                   >
-                    <td className="px-6 py-4 text-sm font-semibold text-black">
+                    <td className="px-6 py-4 text-sm font-semibold text-text">
                       {actionLabels[log.action] || log.action}
                     </td>
-                    <td className="px-6 py-4 text-sm text-black">{log.user.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">{log.entityType}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{log.description || "-"}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-text">{log.user.name}</td>
+                    <td className="px-6 py-4 text-sm text-muted font-mono">{log.entityType}</td>
+                    <td className="px-6 py-4 text-sm text-muted">{log.description || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-muted">
                       {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString()}
                     </td>
                   </tr>
@@ -75,7 +75,7 @@ export default async function AuditLogPage() {
           </div>
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
+        <div className="mt-4 text-center text-sm text-muted">
           Mostrando últimos {logs.length} registros
         </div>
       </div>
