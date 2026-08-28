@@ -56,7 +56,7 @@ USER nextjs
 EXPOSE 3000
 
 # Aplica las migraciones pendientes (sin generar nuevas) y arranca el servidor.
-# Se usa "npx prisma" (resuelve node_modules/prisma/build/index.js directamente)
-# en vez de "node_modules/.bin/prisma", porque el symlink de .bin no se copia
-# al copiar manualmente solo las carpetas de paquetes de Prisma al runner.
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+# Se invoca directamente el archivo de entrada del CLI (build/index.js) en vez
+# de "prisma" o "npx prisma": ninguno de los dos funciona sin el symlink de
+# .bin, que no existe porque solo copiamos las carpetas de paquetes al runner.
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
