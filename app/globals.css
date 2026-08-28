@@ -141,12 +141,3 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary-2);
 }
 
-table {
-  color: var(--color-text);
-}
-thead {
-  background: rgba(0, 0, 0, 0.14);
-}
-th, td {
-  border-color: var(--color-border) !important;
-}

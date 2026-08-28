@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -32,6 +33,7 @@ export default async function ContadorReportPage({
   const params = await searchParams
   const preset = params.preset || "month"
   const { from, to } = getDateRange(preset, params.from, params.to)
+  const currency = await getCurrencySymbol()
 
   const sales = await prisma.sale.findMany({
     where: { status: "COMPLETED", isInvoiced: true, createdAt: { gte: from, lte: to } },
@@ -66,7 +68,7 @@ export default async function ContadorReportPage({
 
         <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6 mb-6">
           <p className="text-sm text-muted mb-2">Total Facturado del Periodo</p>
-          <p className="text-3xl font-bold text-text">${total.toFixed(2)} <span className="text-sm text-muted font-normal">({sales.length} facturas)</span></p>
+          <p className="text-3xl font-bold text-text">{currency}{total.toFixed(2)} <span className="text-sm text-muted font-normal">({sales.length} facturas)</span></p>
         </div>
 
         <div className="bg-surface backdrop-blur-md border border-border rounded-2xl overflow-hidden">
@@ -87,7 +89,7 @@ export default async function ContadorReportPage({
                   <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{sale.invoiceNumber}</td>
                   <td className="px-6 py-4 text-sm text-text">{sale.customerBusinessName}</td>
                   <td className="px-6 py-4 text-sm text-text">{sale.customerTaxId}</td>
-                  <td className="px-6 py-4 text-right text-sm font-bold text-text">${new Decimal(sale.total).toFixed(2)}</td>
+                  <td className="px-6 py-4 text-right text-sm font-bold text-text">{currency}{new Decimal(sale.total).toFixed(2)}</td>
                 </tr>
               ))}
               {sales.length === 0 && (

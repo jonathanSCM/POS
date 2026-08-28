@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import { NextResponse } from "next/server"
 import Decimal from "decimal.js"
 
@@ -38,13 +39,14 @@ export async function POST(request: Request) {
     })
 
     // Registrar en auditoría
+    const currency = await getCurrencySymbol()
     await prisma.auditLog.create({
       data: {
         action: "REGISTER_DISCREPANCY",
         userId: (session.user as any).id,
         entityType: "CashRegisterSession",
         entityId: openSession.id,
-        description: `Cierre de caja. Discrepancia: $${discrepancy.toFixed(2)}`,
+        description: `Cierre de caja. Discrepancia: ${currency}${discrepancy.toFixed(2)}`,
       },
     })
 

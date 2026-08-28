@@ -1,9 +1,11 @@
 "use client"
 
 import { useCartStore, CartLine } from "@/stores/cart-store"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 import Decimal from "decimal.js"
 
 export function CartLines() {
+  const currency = useCurrencySymbol()
   const {
     lines,
     removeLine,
@@ -80,7 +82,7 @@ export function CartLines() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-text">
-                    ${line.unitPrice.toString()}
+                    {currency}{line.unitPrice.toString()}
                   </td>
                   <td className="px-4 py-3">
                     <input
@@ -96,7 +98,7 @@ export function CartLines() {
                     />
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-text">
-                    ${lineTotal.toFixed(2)}
+                    {currency}{lineTotal.toFixed(2)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
@@ -117,17 +119,17 @@ export function CartLines() {
       <div className="bg-white/5 rounded-lg p-4 space-y-2 border border-border">
         <div className="flex justify-between text-sm">
           <span className="text-muted">Subtotal:</span>
-          <span className="font-medium text-text">${totalBefore.toFixed(2)}</span>
+          <span className="font-medium text-text">{currency}{totalBefore.toFixed(2)}</span>
         </div>
         {totalDiscount.gt(0) && (
           <div className="flex justify-between text-sm">
             <span className="text-muted">Descuentos:</span>
-            <span className="font-medium text-danger">-${totalDiscount.toFixed(2)}</span>
+            <span className="font-medium text-danger">-{currency}{totalDiscount.toFixed(2)}</span>
           </div>
         )}
         <div className="border-t border-border pt-2 flex justify-between">
           <span className="font-semibold text-text">Total:</span>
-          <span className="text-xl font-bold text-text">${totalAfter.toFixed(2)}</span>
+          <span className="text-xl font-bold text-text">{currency}{totalAfter.toFixed(2)}</span>
         </div>
       </div>
     </div>

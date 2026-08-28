@@ -1,5 +1,6 @@
 import { getProducts } from "@/app/actions/products"
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 
 async function MovementsList({ productId }: { productId: string }) {
@@ -113,6 +114,7 @@ export default async function ProductMovementsPage({
   const { productId } = await params
   const products = await getProducts()
   const product = products.find((p) => p.id === productId)
+  const currency = await getCurrencySymbol()
 
   if (!product) {
     return (
@@ -147,11 +149,11 @@ export default async function ProductMovementsPage({
               </div>
               <div>
                 <p className="text-sm text-muted">Precio Costo</p>
-                <p className="text-lg font-semibold text-text">${Number(product.costPrice).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-text">{currency}{Number(product.costPrice).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted">Precio Venta</p>
-                <p className="text-lg font-semibold text-text">${Number(product.salePrice).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-text">{currency}{Number(product.salePrice).toFixed(2)}</p>
               </div>
             </div>
           </div>

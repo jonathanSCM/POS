@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import Link from "next/link"
 import { ReceiptActions } from "./ReceiptActions"
 import { ReceiptContent } from "@/components/shared/ReceiptContent"
+import { getCurrencySymbol } from "@/lib/settings"
 
 export default async function ReceiptPage({
   params,
@@ -21,9 +22,10 @@ export default async function ReceiptPage({
   const host = headersList.get("host")
   const proto = headersList.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https")
   const publicUrl = sale.publicToken ? `${proto}://${host}/receipt/${sale.publicToken}` : null
+  const currency = await getCurrencySymbol()
 
   return (
-    <div className="min-h-screen bg-white p-4 print:p-0 print:min-h-0">
+    <div className="min-h-screen bg-white text-gray-900 p-4 print:p-0 print:min-h-0">
       <div className="max-w-sm mx-auto bg-white">
         {/* Header no imprimir */}
         <div className="mb-8 print:hidden flex justify-between items-center">
@@ -33,7 +35,7 @@ export default async function ReceiptPage({
           </Link>
         </div>
 
-        <ReceiptContent sale={sale} publicUrl={publicUrl} />
+        <ReceiptContent sale={sale} publicUrl={publicUrl} currency={currency} />
       </div>
 
       {/* Botón de impresión (no se imprime) */}

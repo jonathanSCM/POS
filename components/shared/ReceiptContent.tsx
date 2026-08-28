@@ -1,6 +1,6 @@
 import { SaleQrCode } from "./SaleQrCode"
 
-export function ReceiptContent({ sale, publicUrl }: { sale: any; publicUrl?: string | null }) {
+export function ReceiptContent({ sale, publicUrl, currency = "$" }: { sale: any; publicUrl?: string | null; currency?: string }) {
   const subtotal = ((sale.lines || []) as any[]).reduce((sum: number, line: any) => {
     return sum + Number(line.unitPrice) * Number(line.quantity)
   }, 0)
@@ -61,8 +61,8 @@ export function ReceiptContent({ sale, publicUrl }: { sale: any; publicUrl?: str
                 <tr key={line.id} className="border-b border-gray-200">
                   <td className="py-1 text-left">{line.productName}</td>
                   <td className="py-1 text-center">{line.quantity.toString()}</td>
-                  <td className="py-1 text-right">${Number(line.unitPrice).toFixed(2)}</td>
-                  <td className="py-1 text-right font-medium">${lineTotal.toFixed(2)}</td>
+                  <td className="py-1 text-right">{currency}{Number(line.unitPrice).toFixed(2)}</td>
+                  <td className="py-1 text-right font-medium">{currency}{lineTotal.toFixed(2)}</td>
                 </tr>
               )
             })}
@@ -74,12 +74,12 @@ export function ReceiptContent({ sale, publicUrl }: { sale: any; publicUrl?: str
       <div className="space-y-2 text-xs font-medium mb-4 border-b border-gray-300 pb-4">
         <div className="flex justify-between">
           <span>Subtotal:</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{currency}{subtotal.toFixed(2)}</span>
         </div>
         {sale.total && (
           <div className="flex justify-between border-t border-gray-300 pt-2">
             <span className="font-bold text-sm">TOTAL:</span>
-            <span className="font-bold text-sm">${Number(sale.total).toFixed(2)}</span>
+            <span className="font-bold text-sm">{currency}{Number(sale.total).toFixed(2)}</span>
           </div>
         )}
       </div>
@@ -101,7 +101,7 @@ export function ReceiptContent({ sale, publicUrl }: { sale: any; publicUrl?: str
                   ? "QR"
                   : "Crédito"}
               </span>
-              <span>${Number(payment.amount).toFixed(2)}</span>
+              <span>{currency}{Number(payment.amount).toFixed(2)}</span>
             </div>
           ))}
         </div>

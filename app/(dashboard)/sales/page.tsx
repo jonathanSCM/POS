@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
 export default async function SalesPage() {
+  const currency = await getCurrencySymbol()
   const sales = await prisma.sale.findMany({
     where: { status: "COMPLETED" },
     include: {
@@ -36,7 +38,7 @@ export default async function SalesPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Total Ventas</p>
-            <p className="text-3xl font-bold text-text">${totalSales.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-text">{currency}{totalSales.toFixed(2)}</p>
           </div>
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Cantidad de Ventas</p>
@@ -45,7 +47,7 @@ export default async function SalesPage() {
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Ticket Promedio</p>
             <p className="text-3xl font-bold text-text">
-              ${totalCount > 0 ? totalSales.div(totalCount).toFixed(2) : "0.00"}
+              {currency}{totalCount > 0 ? totalSales.div(totalCount).toFixed(2) : "0.00"}
             </p>
           </div>
         </div>
@@ -81,7 +83,7 @@ export default async function SalesPage() {
                       {sale.lines.length}
                     </td>
                     <td className="px-6 py-4 text-center text-sm font-bold text-text">
-                      ${new Decimal(sale.total).toFixed(2)}
+                      {currency}{new Decimal(sale.total).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-text">
                       {sale.payments[0]?.method === "CASH"

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -37,6 +38,7 @@ export default async function ReportsPage({
   const params = await searchParams
   const preset = params.preset || "today"
   const { from, to } = getDateRange(preset, params.from, params.to)
+  const currency = await getCurrencySymbol()
 
   const sales = await prisma.sale.findMany({
     where: { status: "COMPLETED", createdAt: { gte: from, lte: to } },
@@ -104,7 +106,7 @@ export default async function ReportsPage({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Total de Ventas</p>
-            <p className="text-3xl font-bold text-text">${totalSales.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-text">{currency}{totalSales.toFixed(2)}</p>
           </div>
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Cantidad Ventas</p>
@@ -112,7 +114,7 @@ export default async function ReportsPage({
           </div>
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Ticket Promedio</p>
-            <p className="text-3xl font-bold text-text">${avgTicket.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-text">{currency}{avgTicket.toFixed(2)}</p>
           </div>
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Artículos Vendidos</p>
@@ -124,11 +126,11 @@ export default async function ReportsPage({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Ventas con Factura</p>
-            <p className="text-2xl font-bold text-text">${invoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({invoicedSales.length} ventas)</span></p>
+            <p className="text-2xl font-bold text-text">{currency}{invoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({invoicedSales.length} ventas)</span></p>
           </div>
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Ventas sin Factura</p>
-            <p className="text-2xl font-bold text-text">${nonInvoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({nonInvoicedSales.length} ventas)</span></p>
+            <p className="text-2xl font-bold text-text">{currency}{nonInvoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({nonInvoicedSales.length} ventas)</span></p>
           </div>
         </div>
 
@@ -156,7 +158,7 @@ export default async function ReportsPage({
                     {p.method === "CASH" ? "💵 Efectivo" : p.method === "CARD" ? "💳 Tarjeta" : p.method === "QR" ? "📱 QR" : "🏦 Transferencia"}
                   </span>
                   <div className="text-right">
-                    <p className="font-bold text-text">${new Decimal(p._sum.amount || 0).toFixed(2)}</p>
+                    <p className="font-bold text-text">{currency}{new Decimal(p._sum.amount || 0).toFixed(2)}</p>
                     <p className="text-xs text-muted">{p._count} transacciones</p>
                   </div>
                 </div>

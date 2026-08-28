@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SignOutButton from "@/components/shared/SignOutButton"
+import { CurrencyProvider } from "@/components/shared/CurrencyProvider"
+import { getCurrencySymbol } from "@/lib/settings"
 
 export default async function DashboardLayout({
   children,
@@ -15,8 +17,10 @@ export default async function DashboardLayout({
   }
 
   const user = session.user as any
+  const currencySymbol = await getCurrencySymbol()
 
   return (
+    <CurrencyProvider symbol={currencySymbol}>
     <div className="min-h-screen print:min-h-0 print:bg-white">
       {/* Topbar */}
       <div className="glass sticky top-0 z-40 print:hidden">
@@ -39,5 +43,6 @@ export default async function DashboardLayout({
         {children}
       </div>
     </div>
+    </CurrencyProvider>
   )
 }

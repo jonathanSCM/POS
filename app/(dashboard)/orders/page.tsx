@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -10,6 +11,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default async function OrdersPage() {
+  const currency = await getCurrencySymbol()
   const orders = await prisma.whatsAppOrder.findMany({
     include: { lines: true },
     orderBy: { createdAt: "desc" },
@@ -56,7 +58,7 @@ export default async function OrdersPage() {
                     <td className="px-6 py-4 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>{status.label}</span>
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-bold text-text">${new Decimal(order.total).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-text">{currency}{new Decimal(order.total).toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm text-muted">{new Date(order.createdAt).toLocaleString()}</td>
                   </tr>
                 )

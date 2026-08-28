@@ -1,6 +1,7 @@
 "use client"
 
 import { useCartStore } from "@/stores/cart-store"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 
 interface PaymentDialogProps {
   onClose: () => void
@@ -8,6 +9,7 @@ interface PaymentDialogProps {
 }
 
 export function PaymentDialog({ onClose, onComplete }: PaymentDialogProps) {
+  const currency = useCurrencySymbol()
   const { getTotalAfterDiscount, payment, setPayment } = useCartStore()
 
   const total = getTotalAfterDiscount()
@@ -34,7 +36,7 @@ export function PaymentDialog({ onClose, onComplete }: PaymentDialogProps) {
         {/* Total a pagar */}
         <div className="bg-white/5 rounded-lg p-4 mb-6 border border-border">
           <p className="text-sm text-muted mb-1">Total a pagar:</p>
-          <p className="text-3xl font-bold text-text">${total.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-text">{currency}{total.toFixed(2)}</p>
         </div>
 
         {/* Seleccionar método */}

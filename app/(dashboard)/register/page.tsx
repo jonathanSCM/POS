@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Decimal from "decimal.js"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 
 interface Session {
   id: string
@@ -16,6 +17,7 @@ interface Session {
 }
 
 export default function RegisterPage() {
+  const currency = useCurrencySymbol()
   const [session, setSession] = useState<Session | null>(null)
   const [openingFloat, setOpeningFloat] = useState("")
   const [actualCash, setActualCash] = useState("")
@@ -78,7 +80,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setMessage(`✅ Sesión cerrada. Discrepancia: $${new Decimal(data.discrepancy).toFixed(2)}`)
+        setMessage(`✅ Sesión cerrada. Discrepancia: ${currency}${new Decimal(data.discrepancy).toFixed(2)}`)
         setActualCash("")
         await loadSession()
       } else {
@@ -184,17 +186,17 @@ export default function RegisterPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-muted">Fondo Inicial</p>
-                  <p className="text-2xl font-bold text-text">${new Decimal(session.startingCash).toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.startingCash).toFixed(2)}</p>
                 </div>
                 {session.status === "CLOSED" && (
                   <>
                     <div>
                       <p className="text-sm text-muted">Efectivo Esperado</p>
-                      <p className="text-2xl font-bold text-text">${new Decimal(session.expectedCash || 0).toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.expectedCash || 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted">Efectivo Contado</p>
-                      <p className="text-2xl font-bold text-text">${new Decimal(session.countedCash || 0).toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.countedCash || 0).toFixed(2)}</p>
                     </div>
                     <div className={`p-3 rounded-lg ${
                       new Decimal(session.discrepancy || 0).isZero() ? "bg-success/10" : "bg-warning/10"
@@ -203,7 +205,7 @@ export default function RegisterPage() {
                       <p className={`text-2xl font-bold ${
                         new Decimal(session.discrepancy || 0).isZero() ? "text-success" : "text-warning"
                       }`}>
-                        ${new Decimal(session.discrepancy || 0).toFixed(2)}
+                        {currency}{new Decimal(session.discrepancy || 0).toFixed(2)}
                       </p>
                     </div>
                   </>

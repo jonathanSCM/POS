@@ -10,6 +10,7 @@ import { ProductSearch } from "@/components/pos/ProductSearch"
 import { CartLines } from "@/components/pos/CartLines"
 import { CustomerPicker } from "@/components/pos/CustomerPicker"
 import { SaleQrCode } from "@/components/shared/SaleQrCode"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 import Decimal from "decimal.js"
 import Link from "next/link"
 
@@ -37,6 +38,7 @@ interface CompletedSale {
 
 export default function POSPage() {
   const { data: session } = useSession()
+  const currency = useCurrencySymbol()
   const {
     lines,
     customer,
@@ -236,10 +238,10 @@ export default function POSPage() {
 
   if (completedSale) {
     return (
-      <div className="min-h-screen bg-surface backdrop-blur-md p-8 print:min-h-0 print:p-0">
+      <div className="min-h-screen bg-white p-8 print:min-h-0 print:p-0">
         <div className="max-w-2xl mx-auto">
           {/* Factura */}
-          <div id="receipt" className="bg-surface backdrop-blur-md text-text border-4 border-black p-6 mb-8 font-mono text-sm max-w-2xl mx-auto">
+          <div id="receipt" className="bg-white text-black border-4 border-black p-6 mb-8 font-mono text-sm max-w-2xl mx-auto">
             {/* Encabezado */}
             <div className="text-center mb-4 border-b-2 border-black pb-4">
               <h1 className="text-xl font-bold">POS SISTEMA</h1>
@@ -289,11 +291,11 @@ export default function POSPage() {
                 <span className="w-20 text-right">Total</span>
               </div>
               {completedSale.lines.map((line) => (
-                <div key={line.id} className="flex justify-between border-b border-border pb-2 mb-2">
+                <div key={line.id} className="flex justify-between border-b border-gray-300 pb-2 mb-2">
                   <span className="flex-1">{line.productName}</span>
                   <span className="w-12 text-center">{line.quantity}</span>
-                  <span className="w-16 text-right">${parseFloat(line.unitPrice).toFixed(2)}</span>
-                  <span className="w-20 text-right">${parseFloat(line.lineTotal).toFixed(2)}</span>
+                  <span className="w-16 text-right">{currency}{parseFloat(line.unitPrice).toFixed(2)}</span>
+                  <span className="w-20 text-right">{currency}{parseFloat(line.lineTotal).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -302,11 +304,11 @@ export default function POSPage() {
             <div className="mb-4 border-t-2 border-b-2 border-black py-3">
               <div className="flex justify-between mb-2">
                 <span>Subtotal:</span>
-                <span>${parseFloat(completedSale.subtotal).toFixed(2)}</span>
+                <span>{currency}{parseFloat(completedSale.subtotal).toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>TOTAL:</span>
-                <span>${parseFloat(completedSale.total).toFixed(2)}</span>
+                <span>{currency}{parseFloat(completedSale.total).toFixed(2)}</span>
               </div>
             </div>
 
@@ -390,7 +392,7 @@ export default function POSPage() {
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-lg">
                   <span className="text-muted">Total:</span>
-                  <span className="font-bold text-text text-3xl">${total.toFixed(2)}</span>
+                  <span className="font-bold text-text text-3xl">{currency}{total.toFixed(2)}</span>
                 </div>
               </div>
 

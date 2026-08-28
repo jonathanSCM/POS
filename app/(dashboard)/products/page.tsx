@@ -2,11 +2,13 @@ import { getProducts } from "@/app/actions/products"
 import { getCategories } from "@/app/actions/categories"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { getCurrencySymbol } from "@/lib/settings"
 import Decimal from "decimal.js"
 
 export default async function ProductsPage() {
   const products = await getProducts()
   const categories = await getCategories()
+  const currency = await getCurrencySymbol()
 
   return (
     <div className="p-8 max-w-7xl">
@@ -72,10 +74,10 @@ export default async function ProductsPage() {
                   {product.category?.name || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text">
-                  ${Number(product.costPrice).toFixed(2)}
+                  {currency}{Number(product.costPrice).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
-                  ${Number(product.salePrice).toFixed(2)}
+                  {currency}{Number(product.salePrice).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <span className={new Decimal(product.stockQty).lte(new Decimal(product.minStockAlert)) ? "text-danger font-medium" : "text-text"}>
