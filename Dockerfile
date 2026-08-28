@@ -56,4 +56,7 @@ USER nextjs
 EXPOSE 3000
 
 # Aplica las migraciones pendientes (sin generar nuevas) y arranca el servidor.
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node server.js"]
+# Se usa "npx prisma" (resuelve node_modules/prisma/build/index.js directamente)
+# en vez de "node_modules/.bin/prisma", porque el symlink de .bin no se copia
+# al copiar manualmente solo las carpetas de paquetes de Prisma al runner.
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
