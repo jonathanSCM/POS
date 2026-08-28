@@ -46,6 +46,12 @@ body {
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+/* Recibos y otras superficies claras aisladas del tema oscuro */
+.bg-white {
+  color-scheme: light;
 }
 
 h1, h2, h3, h4 {
@@ -139,5 +145,20 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   box-shadow: 0 0 0 3px var(--color-ring);
   border-color: var(--color-primary-2);
+}
+
+/* Evita que el autocompletado del navegador pinte el campo de blanco */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0px 1000px rgba(30, 18, 46, 0.9) inset;
+  box-shadow: 0 0 0px 1000px rgba(30, 18, 46, 0.9) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+select option {
+  background: #241634;
+  color: var(--color-text);
 }
 
