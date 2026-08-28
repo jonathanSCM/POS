@@ -1,5 +1,43 @@
 # Guía de despliegue en VPS
 
+## 0. Despliegue con Docker / Coolify (recomendado)
+
+El proyecto incluye un `Dockerfile` multi-etapa listo para usar. En Coolify:
+
+1. Crea un nuevo recurso **"Application"** apuntando a este repositorio de GitHub,
+   con **Build Pack: Dockerfile** (Coolify lo detecta solo si está en la raíz).
+2. En **Puertos expuestos**, usa `3000` (es el `EXPOSE` del Dockerfile).
+3. En **Variables de entorno**, configura:
+
+   ```
+   DATABASE_URL=postgresql://usuario:contraseña@host:5432/pos_completo?sslmode=disable
+   NEXTAUTH_SECRET=<genera uno nuevo con: openssl rand -hex 32>
+   NEXTAUTH_URL=https://tu-dominio.com
+   WHATSAPP_VERIFY_TOKEN=
+   WHATSAPP_ACCESS_TOKEN=
+   WHATSAPP_PHONE_NUMBER_ID=
+   ```
+
+   Si usas la base de datos Postgres que Coolify puede crear como servicio aparte,
+   usa el host interno que te da Coolify (algo como `nombre-servicio:5432`), no `localhost`.
+4. Al desplegar, el contenedor **aplica las migraciones automáticamente** (`prisma migrate
+   deploy`) antes de arrancar el servidor — no hace falta ejecutar nada a mano.
+5. La primera vez, crea el usuario administrador inicial directamente en la base de datos
+   (la imagen de producción no incluye las herramientas para correr el script de seed en
+   TypeScript). Desde el editor SQL de Coolify o cualquier cliente de Postgres, ejecuta:
+   ```sql
+   INSERT INTO users (id, name, email, "passwordHash", role, active, "createdAt", "updatedAt")
+   VALUES ('admin-seed-001', 'Admin', 'admin@pos.local',
+     '$2b$10$nxJ.RMrQ0X.le6bIEb25IuEusBxp/OjSioRgUFU9g1s2//E.RDR/K',
+     'ADMIN', true, now(), now());
+   ```
+   Esto crea el usuario `admin@pos.local` con contraseña `admin123` (el mismo hash bcrypt
+   que usa el seed local) — **cámbiala de inmediato** desde `/users` una vez que inicies sesión.
+6. Configura tu dominio en Coolify (genera HTTPS automático con Let's Encrypt).
+
+El resto de esta guía (secciones 1-9) describe el despliegue manual sin Docker, por si
+alguna vez lo necesitas en un VPS sin Coolify.
+
 ## 1. Requisitos previos en el VPS
 
 - Node.js 20 LTS (o superior)
