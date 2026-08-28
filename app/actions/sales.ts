@@ -63,7 +63,10 @@ export async function createSale(data: {
         orderBy: { openedAt: "desc" },
       })
 
-      // Validar stock disponible
+      // Validar stock disponible y traer el precio real de cada producto:
+      // el precio/total nunca se toma del cliente, siempre se recalcula
+      // contra lo que realmente dice la base de datos en este momento.
+      const products = new Map<string, Awaited<ReturnType<typeof tx.product.findUnique>>>()
       for (const line of data.lines) {
         const product = await tx.product.findUnique({
           where: { id: line.productId },
@@ -74,7 +77,24 @@ export async function createSale(data: {
             `Stock insuficiente para ${product.name}: disponible ${product.stockQty}`
           )
         }
+        products.set(line.productId, product)
       }
+
+      const saleLines = data.lines.map((line) => {
+        const product = products.get(line.productId)!
+        const qty = new Decimal(line.quantity)
+        const price = new Decimal(product.salePrice.toString())
+        const lineTotal = qty.times(price)
+        return {
+          productId: line.productId,
+          productName: product.name,
+          quantity: qty,
+          unitPrice: price,
+          lineTotal,
+        }
+      })
+      const subtotal = saleLines.reduce((sum, l) => sum.plus(l.lineTotal), new Decimal(0))
+      const total = subtotal
 
       // Generar código único para la venta
       const saleCode = `VTA-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`
@@ -94,10 +114,10 @@ export async function createSale(data: {
           cashierId: data.cashierId,
           registerSessionId: openSession?.id,
           status: "COMPLETED",
-          subtotal: new Prisma.Decimal(data.total),
+          subtotal: new Prisma.Decimal(subtotal.toString()),
           discountTotal: new Prisma.Decimal(0),
           taxTotal: new Prisma.Decimal(0),
-          total: new Prisma.Decimal(data.total),
+          total: new Prisma.Decimal(total.toString()),
           completedAt: new Date(),
           publicToken: randomUUID(),
           isInvoiced: Boolean(data.isInvoiced),
@@ -105,25 +125,20 @@ export async function createSale(data: {
           customerTaxId: data.isInvoiced ? data.customerTaxId || null : null,
           customerBusinessName: data.isInvoiced ? data.customerBusinessName || null : null,
           lines: {
-            create: data.lines.map((line) => {
-              const qty = new Decimal(line.quantity)
-              const price = new Decimal(line.unitPrice)
-              const lineTotal = qty.times(price)
-              return {
-                productId: line.productId,
-                productName: line.productName,
-                quantity: new Prisma.Decimal(qty.toString()),
-                unitPrice: new Prisma.Decimal(price.toString()),
-                lineTotal: new Prisma.Decimal(lineTotal.toString()),
-                lineDiscount: new Prisma.Decimal(0),
-              }
-            }),
+            create: saleLines.map((line) => ({
+              productId: line.productId,
+              productName: line.productName,
+              quantity: new Prisma.Decimal(line.quantity.toString()),
+              unitPrice: new Prisma.Decimal(line.unitPrice.toString()),
+              lineTotal: new Prisma.Decimal(line.lineTotal.toString()),
+              lineDiscount: new Prisma.Decimal(0),
+            })),
           },
           payments: {
             create: [
               {
                 method: data.paymentMethod,
-                amount: new Prisma.Decimal(data.total),
+                amount: new Prisma.Decimal(total.toString()),
               },
             ],
           },
@@ -172,7 +187,7 @@ export async function createSale(data: {
       // efectivo esperado de la sesión abierta y queda un CashMovement de
       // auditoría (antes este modelo existía en el schema pero no se usaba).
       if (openSession && data.paymentMethod === "CASH") {
-        const cashAmount = new Prisma.Decimal(data.total)
+        const cashAmount = new Prisma.Decimal(total.toString())
 
         await tx.cashRegisterSession.update({
           where: { id: openSession.id },
