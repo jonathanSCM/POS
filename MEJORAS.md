@@ -20,7 +20,7 @@ En **pharmacy-pos**, el equivalente explícitamente "re-deriva los totales desde
 
 **Sugerencia**: en `createSale`, recalcular `unitPrice`/`lineTotal`/`total` a partir de `product.salePrice` leído dentro de la misma transacción, y usar el valor del cliente solo como referencia de UI.
 
-### 2. No hay límite de intentos de login (rate limiting)
+### ✅ 2. No hay límite de intentos de login (rate limiting) — RESUELTO
 Ya agregamos logs de intentos fallidos (útil para diagnosticar), pero nada bloquea intentos repetidos. **Tatlatat/pos-system** limita a 30 intentos/minuto: **swanjwich** a 5 intentos/15 min. Sin esto, un script podría probar contraseñas sin freno contra `admin@pos.local`.
 
 **Sugerencia**: rate-limit simple en `authorize()` (ej. contador en memoria o tabla `LoginAttempt`, bloqueo temporal tras N fallos por email/IP).
@@ -36,7 +36,7 @@ Ya tenemos el modelo `ProductBatch` con `expiryDate` y `qtyRemaining` ([prisma/s
 
 **Sugerencia**: si el cliente vende productos perecederos, conectar el descuento de venta a `ProductBatch` en vez de solo a `Product.stockQty`.
 
-### 4. Reportes sin margen de ganancia
+### ✅ 4. Reportes sin margen de ganancia — RESUELTO
 **Verificado**: `reports/page.tsx` ya calcula "top productos" (`topProducts` vía `groupBy`), pero no hay ningún cálculo de `salePrice - costPrice` en ningún reporte, a pesar de que `costPrice` ya se captura por producto.
 
 Tanto **Tatlatat** ("profit analysis: revenue − COGS") como **swanjwich** ("profit tracking, profit margins") lo tratan como reporte central, no opcional.
@@ -85,9 +85,9 @@ Ya tenemos el modelo `CashMovement` (recién conectado en el commit `e9e2c71`), 
 | # | Mejora | Esfuerzo | Impacto |
 |---|--------|----------|---------|
 | ✅ 1 | Recalcular precios/total en el servidor — RESUELTO | Bajo | 🔴 Alto (seguridad/dinero) |
-| 2 | Rate limiting en login | Bajo | 🔴 Alto (seguridad) |
+| ✅ 2 | Rate limiting en login — RESUELTO | Bajo | 🔴 Alto (seguridad) |
 | 5 | Revocar sesiones (tokenVersion) | Bajo | 🟡 Medio (seguridad) |
-| 4 | Margen de ganancia en reportes | Bajo | 🟡 Medio (negocio) |
+| ✅ 4 | Margen de ganancia en reportes — RESUELTO | Bajo | 🟡 Medio (negocio) |
 | 11 | Pantalla de movimientos de caja | Bajo | 🟢 Bajo-medio |
 | 3 | FEFO en ventas (si aplica) | Medio | 🟡 Medio (solo si vende perecederos) |
 | 6 | Gráficos en reportes | Medio | 🟢 Medio (UX) |

@@ -54,6 +54,29 @@ export default async function ReportsPage({
   const invoicedTotal = invoicedSales.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
   const nonInvoicedTotal = nonInvoicedSales.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
 
+  // Ganancia = precio de venta - costo actual del producto, por cada línea
+  // vendida en el periodo. Usa el costo de HOY (no el costo histórico al
+  // momento de la venta, que no se guarda), así que si los costos cambiaron
+  // recientemente el número es una aproximación, no un valor contable exacto.
+  const soldProductIds = [...new Set(sales.flatMap((s) => s.lines.map((l) => l.productId)))]
+  const costByProductId = new Map(
+    (
+      await prisma.product.findMany({
+        where: { id: { in: soldProductIds } },
+        select: { id: true, costPrice: true },
+      })
+    ).map((p) => [p.id, new Decimal(p.costPrice)])
+  )
+  const totalProfit = sales.reduce((sum, s) => {
+    const saleProfit = s.lines.reduce((lineSum, l) => {
+      const cost = costByProductId.get(l.productId) ?? new Decimal(0)
+      const lineCost = cost.times(new Decimal(l.quantity))
+      return lineSum.plus(new Decimal(l.lineTotal).minus(lineCost))
+    }, new Decimal(0))
+    return sum.plus(saleProfit)
+  }, new Decimal(0))
+  const profitMargin = totalSales.gt(0) ? totalProfit.div(totalSales).times(100) : new Decimal(0)
+
   const topProducts = await prisma.saleLine.groupBy({
     by: ["productName"],
     where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to } } },
@@ -119,6 +142,20 @@ export default async function ReportsPage({
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Artículos Vendidos</p>
             <p className="text-3xl font-bold text-text">{sales.reduce((sum, s) => sum + s.lines.length, 0)}</p>
+          </div>
+        </div>
+
+        {/* Ganancia */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Ganancia del Periodo</p>
+            <p className="text-3xl font-bold text-success">{currency}{totalProfit.toFixed(2)}</p>
+            <p className="text-xs text-muted mt-1">Precio de venta − costo actual del producto</p>
+          </div>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <p className="text-sm text-muted mb-2">Margen de Ganancia</p>
+            <p className="text-3xl font-bold text-success">{profitMargin.toFixed(1)}%</p>
+            <p className="text-xs text-muted mt-1">Ganancia sobre el total vendido</p>
           </div>
         </div>
 

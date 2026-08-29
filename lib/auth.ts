@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
 import * as bcrypt from "bcryptjs"
+import { checkRateLimit, recordFailedAttempt, clearAttempts } from "./rate-limit"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -25,16 +26,27 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        const rateLimitKey = credentials.email.trim().toLowerCase()
+        const rateLimit = checkRateLimit(rateLimitKey)
+        if (!rateLimit.allowed) {
+          console.warn(
+            `[login] BLOQUEADO por intentos repetidos (reintenta en ${rateLimit.retryAfterSeconds}s) ${logCtx}`
+          )
+          return null
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         })
 
         if (!user) {
+          recordFailedAttempt(rateLimitKey)
           console.warn(`[login] FALLO (usuario no existe) ${logCtx}`)
           return null
         }
 
         if (!user.active) {
+          recordFailedAttempt(rateLimitKey)
           console.warn(`[login] FALLO (usuario inactivo) ${logCtx}`)
           return null
         }
@@ -45,10 +57,12 @@ export const authOptions: NextAuthOptions = {
         )
 
         if (!isPasswordValid) {
+          recordFailedAttempt(rateLimitKey)
           console.warn(`[login] FALLO (contraseña incorrecta) ${logCtx}`)
           return null
         }
 
+        clearAttempts(rateLimitKey)
         console.log(`[login] OK role=${user.role} ${logCtx}`)
 
         return {
