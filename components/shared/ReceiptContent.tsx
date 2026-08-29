@@ -1,4 +1,5 @@
 import { SaleQrCode } from "./SaleQrCode"
+import { formatDateTime, formatTime } from "@/lib/dates"
 
 export function ReceiptContent({ sale, publicUrl, currency = "$" }: { sale: any; publicUrl?: string | null; currency?: string }) {
   const subtotal = ((sale.lines || []) as any[]).reduce((sum: number, line: any) => {
@@ -20,7 +21,7 @@ export function ReceiptContent({ sale, publicUrl, currency = "$" }: { sale: any;
           </p>
           <p>
             <strong>Fecha:</strong>{" "}
-            {new Date(sale.createdAt).toLocaleString("es-ES")}
+            {formatDateTime(sale.createdAt)}
           </p>
           {sale.customerName && (
             <p>
@@ -112,7 +113,7 @@ export function ReceiptContent({ sale, publicUrl, currency = "$" }: { sale: any;
         <p>Gracias por su compra</p>
         <p>Vuelva pronto</p>
         <p className="text-gray-500 text-[10px]">
-          {new Date(sale.createdAt).toLocaleTimeString("es-ES")}
+          {formatTime(sale.createdAt)}
         </p>
       </div>
 

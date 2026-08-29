@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Decimal from "decimal.js"
 import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
+import { formatDateTime } from "@/lib/dates"
 
 interface Session {
   id: string
@@ -103,6 +104,12 @@ export default function RegisterPage() {
           </div>
           <div className="flex gap-2">
             <Link
+              href="/register/sessions"
+              className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
+            >
+              🕒 Historial de Sesiones
+            </Link>
+            <Link
               href="/register/movements"
               className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
             >
@@ -192,6 +199,16 @@ export default function RegisterPage() {
             <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-8">
               <h2 className="text-2xl font-bold text-text mb-6">Estado de Sesión</h2>
               <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted">Hora de Entrada</p>
+                  <p className="text-lg font-semibold text-text">{formatDateTime(session.openedAt)}</p>
+                </div>
+                {session.closedAt && (
+                  <div>
+                    <p className="text-sm text-muted">Hora de Salida</p>
+                    <p className="text-lg font-semibold text-text">{formatDateTime(session.closedAt)}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted">Fondo Inicial</p>
                   <p className="text-2xl font-bold text-text">{currency}{new Decimal(session.startingCash).toFixed(2)}</p>

@@ -1,6 +1,7 @@
 import { getProducts } from "@/app/actions/products"
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
+import { formatDateTime } from "@/lib/dates"
 import Link from "next/link"
 
 async function MovementsList({ productId }: { productId: string }) {
@@ -58,7 +59,7 @@ async function MovementsList({ productId }: { productId: string }) {
                 }`}
               >
                 <td className="px-6 py-4 text-sm font-medium text-text">
-                  {new Date(mov.createdAt).toLocaleDateString()}
+                  {formatDateTime(mov.createdAt)}
                 </td>
                 <td className="px-6 py-4 text-sm text-text font-medium">
                   {typeLabels[mov.type] || mov.type}

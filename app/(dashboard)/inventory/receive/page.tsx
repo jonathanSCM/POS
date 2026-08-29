@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { createProductBatch } from "@/app/actions/batches"
 import { getProducts } from "@/app/actions/products"
+import { formatDate } from "@/lib/dates"
 import { getSuppliers } from "@/app/actions/suppliers"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
@@ -152,7 +153,7 @@ export default function ReceiveMerchandisePage() {
               <input
                 type="text"
                 disabled
-                value={new Date().toLocaleDateString()}
+                value={formatDate(new Date())}
                 className="w-full px-4 py-2.5 bg-white/5 border border-border rounded-lg text-muted text-sm cursor-not-allowed"
               />
             </div>

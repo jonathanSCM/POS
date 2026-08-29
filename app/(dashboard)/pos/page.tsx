@@ -11,6 +11,7 @@ import { CartLines } from "@/components/pos/CartLines"
 import { CustomerPicker } from "@/components/pos/CustomerPicker"
 import { SaleQrCode } from "@/components/shared/SaleQrCode"
 import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
+import { formatDateTimeShort } from "@/lib/dates"
 import Decimal from "decimal.js"
 import Link from "next/link"
 
@@ -256,7 +257,7 @@ export default function POSPage() {
               </div>
               <div className="flex justify-between mb-1">
                 <span>Fecha:</span>
-                <span>{new Date(completedSale.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "2-digit", day: "2-digit" })} {new Date(completedSale.createdAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</span>
+                <span>{formatDateTimeShort(completedSale.createdAt)}</span>
               </div>
               {completedSale.customerName && (
                 <div className="flex justify-between">

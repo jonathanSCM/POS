@@ -14,10 +14,12 @@ export async function POST(request: Request) {
     const { openingFloat } = await request.json()
     const code = `CAJA-${Date.now()}`
 
-    // Cerrar sesión anterior si existe
+    // Cerrar sesión anterior si existe (alguien la dejó abierta sin cerrarla
+    // formalmente). Se le pone closedAt igual, si no el historial mostraría
+    // una sesión "cerrada" sin hora de salida.
     await prisma.cashRegisterSession.updateMany({
       where: { status: "OPEN" },
-      data: { status: "CLOSED" },
+      data: { status: "CLOSED", closedAt: new Date() },
     })
 
     const newSession = await prisma.cashRegisterSession.create({

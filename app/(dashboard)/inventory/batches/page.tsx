@@ -1,5 +1,6 @@
 import { getAllBatches } from "@/app/actions/batches"
 import Link from "next/link"
+import { formatDate } from "@/lib/dates"
 
 export default async function BatchesPage() {
   const batches = await getAllBatches()
@@ -79,11 +80,11 @@ export default async function BatchesPage() {
                           {batch.supplier?.name || "—"}
                         </td>
                         <td className="px-6 py-4 text-center text-muted">
-                          {new Date(batch.receivedDate).toLocaleDateString()}
+                          {formatDate(batch.receivedDate)}
                         </td>
                         <td className="px-6 py-4 text-center text-muted">
                           {batch.expiryDate
-                            ? new Date(batch.expiryDate).toLocaleDateString()
+                            ? formatDate(batch.expiryDate)
                             : "—"}
                         </td>
                         <td className="px-6 py-4 text-center">

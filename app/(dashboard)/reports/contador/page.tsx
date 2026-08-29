@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
+import { startOfBoliviaDay, endOfBoliviaDay, formatDate } from "@/lib/dates"
 
 function getDateRange(preset: string | undefined, from: string | undefined, to: string | undefined) {
   const now = new Date()
   if (from || to) {
     return {
-      from: from ? new Date(from) : new Date(0),
-      to: to ? new Date(new Date(to).setHours(23, 59, 59, 999)) : now,
+      from: from ? startOfBoliviaDay(new Date(from)) : new Date(0),
+      to: to ? endOfBoliviaDay(new Date(to)) : now,
     }
   }
   if (preset === "week") {
@@ -85,7 +86,7 @@ export default async function ContadorReportPage({
             <tbody className="divide-y divide-border">
               {sales.map((sale) => (
                 <tr key={sale.id}>
-                  <td className="px-6 py-4 text-sm text-muted">{new Date(sale.completedAt || sale.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm text-muted">{formatDate(sale.completedAt || sale.createdAt)}</td>
                   <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{sale.invoiceNumber}</td>
                   <td className="px-6 py-4 text-sm text-text">{sale.customerBusinessName}</td>
                   <td className="px-6 py-4 text-sm text-text">{sale.customerTaxId}</td>

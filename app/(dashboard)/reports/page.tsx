@@ -4,13 +4,14 @@ import Link from "next/link"
 import Decimal from "decimal.js"
 import { SalesTrendChart, PaymentMethodChart } from "@/components/reports/SalesCharts"
 import { calculateLinesProfit, calculateProfitMargin } from "@/lib/profit"
+import { startOfBoliviaDay, endOfBoliviaDay, formatShortDate } from "@/lib/dates"
 
 function getDateRange(preset: string | undefined, from: string | undefined, to: string | undefined) {
   const now = new Date()
   if (from || to) {
     return {
-      from: from ? new Date(from) : new Date(0),
-      to: to ? new Date(new Date(to).setHours(23, 59, 59, 999)) : now,
+      from: from ? startOfBoliviaDay(new Date(from)) : new Date(0),
+      to: to ? endOfBoliviaDay(new Date(to)) : now,
     }
   }
   if (preset === "week") {
@@ -26,10 +27,8 @@ function getDateRange(preset: string | undefined, from: string | undefined, to: 
   if (preset === "all") {
     return { from: new Date(0), to: now }
   }
-  // default: hoy
-  const start = new Date(now)
-  start.setHours(0, 0, 0, 0)
-  return { from: start, to: now }
+  // default: hoy (medianoche de HOY en hora de Bolivia, no la del servidor)
+  return { from: startOfBoliviaDay(now), to: now }
 }
 
 export default async function ReportsPage({
@@ -76,10 +75,10 @@ export default async function ReportsPage({
   const topProducts = await prisma.saleLine.groupBy({
     by: ["productName"],
     where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to } } },
-    _sum: { quantity: true },
+    _sum: { quantity: true, lineTotal: true },
     _count: true,
     orderBy: { _sum: { quantity: "desc" } },
-    take: 5,
+    take: 15,
   })
 
   const paymentMethods = await prisma.payment.groupBy({
@@ -92,7 +91,7 @@ export default async function ReportsPage({
   // Ventas por día para el gráfico de tendencia
   const salesByDayMap = new Map<string, number>()
   for (const s of sales) {
-    const key = s.createdAt.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
+    const key = formatShortDate(s.createdAt)
     salesByDayMap.set(key, (salesByDayMap.get(key) || 0) + Number(s.total))
   }
   const salesTrendData = [...salesByDayMap.entries()]
@@ -199,16 +198,23 @@ export default async function ReportsPage({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Top Productos */}
+          {/* Ventas por Producto */}
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-text mb-6">Productos Más Vendidos</h2>
-            <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-text mb-1">Ventas por Producto</h2>
+            <p className="text-xs text-muted mb-6">Qué se está vendiendo más en el periodo, por unidades e ingresos</p>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
               {topProducts.map((p, idx) => (
                 <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                   <span className="text-text font-medium">{p.productName}</span>
-                  <span className="text-lg font-bold text-text">{p._sum.quantity?.toString() || "0"}</span>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-text">{p._sum.quantity?.toString() || "0"} <span className="text-xs font-normal text-muted">unid.</span></p>
+                    <p className="text-xs text-primary-2">{currency}{new Decimal(p._sum.lineTotal || 0).toFixed(2)}</p>
+                  </div>
                 </div>
               ))}
+              {topProducts.length === 0 && (
+                <p className="text-muted text-sm text-center py-6">No hay ventas en este periodo.</p>
+              )}
             </div>
           </div>
 

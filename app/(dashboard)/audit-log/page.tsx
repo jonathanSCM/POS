@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { formatDateTime } from "@/lib/dates"
 
 export default async function AuditLogPage() {
   const session = await getServerSession(authOptions)
@@ -66,7 +67,7 @@ export default async function AuditLogPage() {
                     <td className="px-6 py-4 text-sm text-muted font-mono">{log.entityType}</td>
                     <td className="px-6 py-4 text-sm text-muted">{log.description || "-"}</td>
                     <td className="px-6 py-4 text-sm text-muted">
-                      {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString()}
+                      {formatDateTime(log.createdAt)}
                     </td>
                   </tr>
                 ))}

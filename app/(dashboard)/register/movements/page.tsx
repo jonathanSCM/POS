@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
+import { formatDateTime } from "@/lib/dates"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -53,7 +54,7 @@ export default async function CashMovementsPage() {
                 return (
                   <tr key={m.id} className="border-b border-border hover:bg-white/5 transition">
                     <td className="px-4 py-3 text-muted whitespace-nowrap">
-                      {new Date(m.createdAt).toLocaleString("es-ES")}
+                      {formatDateTime(m.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-text">
                       {m.session.code}

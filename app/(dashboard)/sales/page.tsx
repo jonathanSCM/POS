@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
+import { formatDateTime } from "@/lib/dates"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -95,7 +96,7 @@ export default async function SalesPage() {
                         : "🏦 Transferencia"}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted">
-                      {new Date(sale.createdAt).toLocaleDateString()} {new Date(sale.createdAt).toLocaleTimeString()}
+                      {formatDateTime(sale.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <Link

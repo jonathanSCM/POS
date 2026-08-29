@@ -1,6 +1,7 @@
 import { getBatchesNearExpiry, getExpiredBatches } from "@/app/actions/batches"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { formatDate } from "@/lib/dates"
 
 export default async function AlertsPage() {
   const nearExpiry = await getBatchesNearExpiry(30)
@@ -43,7 +44,7 @@ export default async function AlertsPage() {
                       Lote: <span className="font-mono text-muted">{batch.batchNumber}</span>
                     </p>
                     <p className="text-sm text-danger font-medium">
-                      Vencido desde: {new Date(batch.expiryDate!).toLocaleDateString()}
+                      Vencido desde: {formatDate(batch.expiryDate!)}
                     </p>
                   </div>
                   <div className="text-right">
@@ -76,7 +77,7 @@ export default async function AlertsPage() {
                         Lote: <span className="font-mono text-muted">{batch.batchNumber}</span>
                       </p>
                       <p className="text-sm text-warning font-medium">
-                        Vence en {daysUntilExpiry} días ({new Date(batch.expiryDate!).toLocaleDateString()})
+                        Vence en {daysUntilExpiry} días ({formatDate(batch.expiryDate!)})
                       </p>
                     </div>
                     <div className="text-right">
