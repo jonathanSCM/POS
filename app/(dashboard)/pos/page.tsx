@@ -9,9 +9,11 @@ import { getProducts } from "@/app/actions/products"
 import { ProductSearch } from "@/components/pos/ProductSearch"
 import { CartLines } from "@/components/pos/CartLines"
 import { CustomerPicker } from "@/components/pos/CustomerPicker"
+import { QuantityPrompt } from "@/components/pos/QuantityPrompt"
 import { SaleQrCode } from "@/components/shared/SaleQrCode"
 import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 import { formatDateTimeShort } from "@/lib/dates"
+import { hasSubUnit } from "@/lib/units"
 import Decimal from "decimal.js"
 import Link from "next/link"
 
@@ -54,6 +56,7 @@ export default function POSPage() {
   const [heldSales, setHeldSales] = useState<any[]>([])
   const [showHeldSales, setShowHeldSales] = useState(false)
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null)
+  const [pendingProduct, setPendingProduct] = useState<any>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"CASH" | "CARD" | "QR" | "TRANSFER" | null>(null)
   const [isInvoiced, setIsInvoiced] = useState(false)
   const [customerTaxId, setCustomerTaxId] = useState("")
@@ -79,6 +82,11 @@ export default function POSPage() {
   }
 
   const handleAddProduct = (product: any) => {
+    if (hasSubUnit(product.unitType)) {
+      setPendingProduct(product)
+      return
+    }
+
     const existingLine = lines.find((l) => l.productId === product.id)
     if (existingLine) {
       incrementLineQty(existingLine.id, new Decimal(1))
@@ -93,6 +101,25 @@ export default function POSPage() {
         unitType: product.unitType,
       })
     }
+  }
+
+  const handleConfirmPendingQuantity = (quantityInBaseUnit: Decimal) => {
+    if (!pendingProduct) return
+    const existingLine = lines.find((l) => l.productId === pendingProduct.id)
+    if (existingLine) {
+      incrementLineQty(existingLine.id, quantityInBaseUnit)
+    } else {
+      addLine({
+        productId: pendingProduct.id,
+        productName: pendingProduct.name,
+        productSku: pendingProduct.sku,
+        quantity: quantityInBaseUnit,
+        unitPrice: new Decimal(pendingProduct.salePrice.toString()),
+        discount: new Decimal(0),
+        unitType: pendingProduct.unitType,
+      })
+    }
+    setPendingProduct(null)
   }
 
   const handleHoldSale = async () => {
@@ -365,6 +392,15 @@ export default function POSPage() {
 
   return (
     <div className="min-h-screen bg-surface backdrop-blur-md p-8">
+      {pendingProduct && (
+        <QuantityPrompt
+          productName={pendingProduct.name}
+          unitType={pendingProduct.unitType}
+          unitPrice={new Decimal(pendingProduct.salePrice.toString())}
+          onConfirm={handleConfirmPendingQuantity}
+          onCancel={() => setPendingProduct(null)}
+        />
+      )}
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-text">Punto de Venta</h1>

@@ -1,11 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { useCartStore, CartLine } from "@/stores/cart-store"
 import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
+import { QuantityPrompt } from "@/components/pos/QuantityPrompt"
+import { hasSubUnit, getSubUnit } from "@/lib/units"
 import Decimal from "decimal.js"
 
 export function CartLines() {
   const currency = useCurrencySymbol()
+  const [editingLine, setEditingLine] = useState<CartLine | null>(null)
   const {
     lines,
     removeLine,
@@ -60,26 +64,35 @@ export function CartLines() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
+                    {hasSubUnit(line.unitType) ? (
                       <button
-                        onClick={() => incrementLineQty(line.id, new Decimal(-1))}
-                        className="px-2 py-1 bg-white/15 hover:bg-white/20 text-text rounded text-sm font-bold transition"
+                        onClick={() => setEditingLine(line)}
+                        className="w-full px-2 py-1 bg-white/10 hover:bg-white/15 border border-border rounded text-center text-sm text-text transition"
                       >
-                        −
+                        {line.quantity.toFixed(3)} {getSubUnit(line.unitType)?.baseLabel} ✏️
                       </button>
-                      <input
-                        type="text"
-                        readOnly
-                        value={line.quantity.toString()}
-                        className="w-16 px-2 py-1 border border-border rounded text-center text-sm bg-white/10 text-text cursor-not-allowed"
-                      />
-                      <button
-                        onClick={() => incrementLineQty(line.id, new Decimal(1))}
-                        className="px-2 py-1 bg-white/15 hover:bg-white/20 text-text rounded text-sm font-bold transition"
-                      >
-                        +
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => incrementLineQty(line.id, new Decimal(-1))}
+                          className="px-2 py-1 bg-white/15 hover:bg-white/20 text-text rounded text-sm font-bold transition"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="text"
+                          readOnly
+                          value={line.quantity.toString()}
+                          className="w-16 px-2 py-1 border border-border rounded text-center text-sm bg-white/10 text-text cursor-not-allowed"
+                        />
+                        <button
+                          onClick={() => incrementLineQty(line.id, new Decimal(1))}
+                          className="px-2 py-1 bg-white/15 hover:bg-white/20 text-text rounded text-sm font-bold transition"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-text">
                     {currency}{line.unitPrice.toString()}
@@ -132,6 +145,20 @@ export function CartLines() {
           <span className="text-xl font-bold text-text">{currency}{totalAfter.toFixed(2)}</span>
         </div>
       </div>
+
+      {editingLine && (
+        <QuantityPrompt
+          productName={editingLine.productName}
+          unitType={editingLine.unitType}
+          unitPrice={editingLine.unitPrice}
+          initialQuantity={editingLine.quantity}
+          onConfirm={(qty) => {
+            updateLineQty(editingLine.id, qty)
+            setEditingLine(null)
+          }}
+          onCancel={() => setEditingLine(null)}
+        />
+      )}
     </div>
   )
 }
