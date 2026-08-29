@@ -1,0 +1,16 @@
+{
+  "name": "POS Sistema",
+  "short_name": "POS",
+  "description": "Sistema de Punto de Venta e Inventario",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#190f28",
+  "theme_color": "#190f28",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

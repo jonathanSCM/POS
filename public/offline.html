@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sin conexión — POS Sistema</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #241634 0%, #190f28 55%, #110a1d 100%);
+    color: #f6f2ff;
+    text-align: center;
+    padding: 24px;
+  }
+  .box { max-width: 420px; }
+  h1 { font-size: 22px; margin-bottom: 12px; }
+  p { color: #dccff5; line-height: 1.5; }
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    background: #2fe3a6;
+    color: #0a1f16;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>📡 Sin conexión a internet</h1>
+    <p>Este sistema necesita internet para funcionar — no se pueden registrar ventas ni consultar datos sin conexión. Revisa tu wifi o datos móviles e intenta de nuevo.</p>
+    <button onclick="location.reload()">Reintentar</button>
+  </div>
+</body>
+</html>

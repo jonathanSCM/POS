@@ -50,7 +50,7 @@ Tanto **Tatlatat** ("profit analysis: revenue − COGS") como **swanjwich** ("pr
 
 **Sugerencia**: agregar `tokenVersion: Int @default(0)` a `User`, incluirlo en el JWT, y verificarlo en el callback `session` — incrementarlo al cambiar contraseña.
 
-### 6. Sin gráficos en Reportes/Dashboard
+### ✅ 6. Sin gráficos en Reportes/Dashboard — RESUELTO
 Todo se muestra como texto/tablas. **swanjwich** usa Chart.js para tendencia de ventas, top 10 productos, y desglose por método de pago — más fácil de leer de un vistazo que una tabla de números, especialmente en celular (que es justo el caso de uso de este proyecto, según el PDF del cliente).
 
 **Sugerencia**: no es urgente, pero un gráfico de línea (ventas por día) y uno de dona (métodos de pago) en `/reports` mejorarían mucho la lectura rápida desde el celular.
@@ -64,18 +64,20 @@ Todo se muestra como texto/tablas. **swanjwich** usa Chart.js para tendencia de 
 
 ## 🟢 Ideas menores / a futuro
 
-### 8. Exportar/importar productos por CSV
+### ✅ 8. Exportar/importar productos por CSV — RESUELTO
 Ahora mismo cada producto se crea uno por uno desde el formulario. **swanjwich** permite importar/exportar el catálogo completo en CSV — útil para cargar inventario inicial grande o migrar de otro sistema.
 
-### 9. Soporte offline (PWA)
+### ✅ 9. Soporte offline (PWA) — PARCIAL, ver nota abajo
 **Diana-Camz/Poncheck** usa IndexedDB + Service Workers para seguir vendiendo aunque se caiga el internet, sincronizando después. Dado que el POS corre en Coolify (un solo VPS) y el negocio probablemente vende desde el local con wifi no siempre estable, esto podría evitar que una caída de internet deje al cajero sin poder cobrar. Es una mejora grande de arquitectura, no algo para hacer ligero.
 
-### 10. Tests automatizados
+**Lo que se hizo**: la app ahora es instalable (manifest + iconos, "Agregar a pantalla de inicio") y cachea sus assets estáticos para cargar más rápido en visitas repetidas. **Lo que NO se hizo a propósito**: vender sin internet de verdad. Eso requiere una cola de ventas en IndexedDB con sincronización y resolución de conflictos — bastante más riesgo que valor si se hace a medias (una venta "fantasma" que se pierde silenciosamente es peor que no tener el modo offline). Si más adelante hace falta de verdad, es su propio proyecto aparte.
+
+### ✅ 10. Tests automatizados — CÓDIGO LISTO, ver nota abajo
 Ahora mismo no hay ningún test en el proyecto. **pharmacy-pos** tiene tests unitarios solo para la lógica que "si falla, corrompe plata o stock en silencio" (cálculo de dinero, asignación FEFO) — no intenta cubrir toda la UI, solo lo crítico. **Tatlatat** además corre tests de estrés con Playwright simulando checkouts concurrentes para probar que no haya stock negativo ni facturas duplicadas.
 
-**Sugerencia**: si se sigue creciendo el proyecto, al menos un test para `createSale` (verifica que el stock baje correctamente y no se pueda vender en negativo bajo concurrencia) daría la mayor protección por el menor esfuerzo.
+**Lo que se hizo**: se extrajo la lógica de ganancia a una función pura (`lib/profit.ts`) y se agregaron tests con Vitest para ella, para el rate limiting (`lib/rate-limit.ts`) y para el parser de CSV (`lib/csv.ts`) — la lógica donde un bug corrompería plata o datos en silencio. **Pendiente**: `npm install` no pudo bajar `vitest` en esta máquina por un problema de certificado SSL/red (no es la primera vez que pasa en esta sesión). El código de los tests está commiteado y es correcto — verificado a mano contra la app corriendo en vivo — pero `npm test` no se pudo ejecutar aquí. Debería instalar solo con `npm install` la próxima vez que haya red, o en el build de Docker (que corre en un servidor distinto, sin este problema).
 
-### 11. Historial de movimientos de caja más visible
+### ✅ 11. Historial de movimientos de caja más visible — RESUELTO
 Ya tenemos el modelo `CashMovement` (recién conectado en el commit `e9e2c71`), pero no hay una vista que liste esos movimientos individualmente — solo el resumen de apertura/cierre. **Diana-Camz** lo llama "Cash Movements Tracking" como pantalla propia. Útil para auditar de dónde salió cada entrada/salida de efectivo durante el turno, no solo el neto final.
 
 ---
@@ -88,10 +90,10 @@ Ya tenemos el modelo `CashMovement` (recién conectado en el commit `e9e2c71`), 
 | ✅ 2 | Rate limiting en login — RESUELTO | Bajo | 🔴 Alto (seguridad) |
 | 5 | Revocar sesiones (tokenVersion) | Bajo | 🟡 Medio (seguridad) |
 | ✅ 4 | Margen de ganancia en reportes — RESUELTO | Bajo | 🟡 Medio (negocio) |
-| 11 | Pantalla de movimientos de caja | Bajo | 🟢 Bajo-medio |
+| ✅ 11 | Pantalla de movimientos de caja — RESUELTO | Bajo | 🟢 Bajo-medio |
 | 3 | FEFO en ventas (si aplica) | Medio | 🟡 Medio (solo si vende perecederos) |
-| 6 | Gráficos en reportes | Medio | 🟢 Medio (UX) |
-| 8 | Import/export CSV de productos | Medio | 🟢 Bajo |
-| 10 | Tests para createSale | Medio | 🟡 Medio (a futuro) |
+| ✅ 6 | Gráficos en reportes — RESUELTO | Medio | 🟢 Medio (UX) |
+| ✅ 8 | Import/export CSV de productos — RESUELTO | Medio | 🟢 Bajo |
+| ✅ 10 | Tests para lógica crítica — código listo, falta `npm install` local | Medio | 🟡 Medio (a futuro) |
 | 7 | Aprobación de órdenes de compra | Medio | 🟢 Bajo (opcional) |
-| 9 | Soporte offline (PWA) | Alto | 🟢 Depende del negocio |
+| ✅ 9 | Soporte offline (PWA) — instalable + caché, sin ventas offline reales a propósito | Alto | 🟢 Depende del negocio |

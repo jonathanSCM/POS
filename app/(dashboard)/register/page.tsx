@@ -101,12 +101,20 @@ export default function RegisterPage() {
             <h1 className="text-4xl font-bold text-text mb-2">Caja Registradora</h1>
             <p className="text-muted">Sesión: {session?.status === "OPEN" ? "🟢 ABIERTA" : "🔴 CERRADA"}</p>
           </div>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
-          >
-            ← Dashboard
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/register/movements"
+              className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
+            >
+              📜 Movimientos
+            </Link>
+            <Link
+              href="/"
+              className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
+            >
+              ← Dashboard
+            </Link>
+          </div>
         </div>
 
         {message && (

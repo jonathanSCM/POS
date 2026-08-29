@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
+import { SalesTrendChart, PaymentMethodChart } from "@/components/reports/SalesCharts"
+import { calculateLinesProfit, calculateProfitMargin } from "@/lib/profit"
 
 function getDateRange(preset: string | undefined, from: string | undefined, to: string | undefined) {
   const now = new Date()
@@ -67,15 +69,9 @@ export default async function ReportsPage({
       })
     ).map((p) => [p.id, new Decimal(p.costPrice)])
   )
-  const totalProfit = sales.reduce((sum, s) => {
-    const saleProfit = s.lines.reduce((lineSum, l) => {
-      const cost = costByProductId.get(l.productId) ?? new Decimal(0)
-      const lineCost = cost.times(new Decimal(l.quantity))
-      return lineSum.plus(new Decimal(l.lineTotal).minus(lineCost))
-    }, new Decimal(0))
-    return sum.plus(saleProfit)
-  }, new Decimal(0))
-  const profitMargin = totalSales.gt(0) ? totalProfit.div(totalSales).times(100) : new Decimal(0)
+  const allSoldLines = sales.flatMap((s) => s.lines)
+  const totalProfit = calculateLinesProfit(allSoldLines, costByProductId)
+  const profitMargin = calculateProfitMargin(totalProfit, totalSales)
 
   const topProducts = await prisma.saleLine.groupBy({
     by: ["productName"],
@@ -92,6 +88,25 @@ export default async function ReportsPage({
     _sum: { amount: true },
     _count: true,
   })
+
+  // Ventas por día para el gráfico de tendencia
+  const salesByDayMap = new Map<string, number>()
+  for (const s of sales) {
+    const key = s.createdAt.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
+    salesByDayMap.set(key, (salesByDayMap.get(key) || 0) + Number(s.total))
+  }
+  const salesTrendData = [...salesByDayMap.entries()]
+    .map(([date, total]) => ({ date, total }))
+    .sort((a, b) => {
+      const [da, ma] = a.date.split("/").map(Number)
+      const [db, mb] = b.date.split("/").map(Number)
+      return ma - mb || da - db
+    })
+
+  const paymentMethodChartData = paymentMethods.map((p) => ({
+    method: p.method,
+    amount: Number(p._sum.amount || 0),
+  }))
 
   const presetLink = (p: string) => `/reports?preset=${p}`
   const exportUrl = `/api/reports/general/export?from=${from.toISOString()}&to=${to.toISOString()}`
@@ -168,6 +183,18 @@ export default async function ReportsPage({
           <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
             <p className="text-sm text-muted mb-2">Ventas sin Factura</p>
             <p className="text-2xl font-bold text-text">{currency}{nonInvoicedTotal.toFixed(2)} <span className="text-sm text-muted font-normal">({nonInvoicedSales.length} ventas)</span></p>
+          </div>
+        </div>
+
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-4">Tendencia de Ventas</h2>
+            <SalesTrendChart data={salesTrendData} currency={currency} />
+          </div>
+          <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-text mb-4">Distribución por Método de Pago</h2>
+            <PaymentMethodChart data={paymentMethodChartData} />
           </div>
         </div>
 

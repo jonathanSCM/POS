@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { ServiceWorkerRegister } from "@/components/shared/ServiceWorkerRegister";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,6 +19,16 @@ const sora = Sora({
 export const metadata: Metadata = {
   title: "POS Sistema",
   description: "Sistema de Punto de Venta",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "POS Sistema",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#190f28",
 };
 
 export default function RootLayout({
@@ -31,6 +42,7 @@ export default function RootLayout({
       className={`${inter.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <ServiceWorkerRegister />
         <Providers>{children}</Providers>
       </body>
     </html>

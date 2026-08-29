@@ -3,6 +3,7 @@ import { getCategories } from "@/app/actions/categories"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
+import { ImportCsvButton } from "@/components/products/ImportCsvButton"
 import Decimal from "decimal.js"
 
 export default async function ProductsPage() {
@@ -24,6 +25,13 @@ export default async function ProductsPage() {
           >
             ← Dashboard
           </Link>
+          <a
+            href="/api/products/export"
+            className="px-4 py-2.5 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition"
+          >
+            ⬇️ Exportar CSV
+          </a>
+          <ImportCsvButton />
           <Link
             href="/products/new"
             className="px-6 py-2.5 bg-primary hover:brightness-110 text-white rounded-lg font-medium transition"
