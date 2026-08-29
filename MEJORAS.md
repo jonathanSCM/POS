@@ -13,7 +13,7 @@ Cada punto abajo dice si ya lo verifiqué contra nuestro propio código o si es 
 
 ## 🔴 Crítico — revisar pronto
 
-### 1. El total de la venta se confía del cliente, no se recalcula en el servidor
+### ✅ 1. El total de la venta se confía del cliente, no se recalcula en el servidor — RESUELTO (commit `653f78f`)
 **Verificado en [app/actions/sales.ts](app/actions/sales.ts):97,100,108** — `createSale` guarda `data.total` y `line.unitPrice` tal cual los manda el navegador, sin comparar contra `product.salePrice` en la base de datos.
 
 En **pharmacy-pos**, el equivalente explícitamente "re-deriva los totales desde los precios de la propia base de datos — el total del carrito del cliente nunca se confía". Ahora mismo, alguien con las herramientas de desarrollador del navegador (o interceptando la petición) podría alterar el precio antes de completar una venta y el sistema lo registraría sin chistar.
@@ -84,7 +84,7 @@ Ya tenemos el modelo `CashMovement` (recién conectado en el commit `e9e2c71`), 
 
 | # | Mejora | Esfuerzo | Impacto |
 |---|--------|----------|---------|
-| 1 | Recalcular precios/total en el servidor | Bajo | 🔴 Alto (seguridad/dinero) |
+| ✅ 1 | Recalcular precios/total en el servidor — RESUELTO | Bajo | 🔴 Alto (seguridad/dinero) |
 | 2 | Rate limiting en login | Bajo | 🔴 Alto (seguridad) |
 | 5 | Revocar sesiones (tokenVersion) | Bajo | 🟡 Medio (seguridad) |
 | 4 | Margen de ganancia en reportes | Bajo | 🟡 Medio (negocio) |
