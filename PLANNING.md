@@ -49,7 +49,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Bajo
 
-### 9. Devoluciones y anulaciones
+### ✅ 9. Devoluciones y anulaciones — RESUELTO
 **Qué hay que hacer:** esto sí es 100% nuevo pese a que el modelo ya existe.
 - Server action `createReturn`: dado un `saleId` y las líneas a devolver, calcula el reembolso, repone `stockQty` del producto, crea `StockMovement` tipo `RETURN_IN`, y dispara `AuditLog` (acción `RETURN_PROCESSED`, que ya está en el enum documentado pero sin usar).
 - UI: desde `/sales/[id]/receipt` o el historial, botón "Devolver" con selección de líneas y motivo.
@@ -119,7 +119,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | ✅ 2 | Ventas a crédito — RESUELTO | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
 | 5 | Kardex consolidado | 2 | Bajo | Mayormente ya existe |
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
-| 9 | Devoluciones/anulaciones | 2 | Medio-Alto | Modelo existe, lógica 0% |
+| ✅ 9 | Devoluciones/anulaciones — RESUELTO | 2 | Medio-Alto | Modelo existe, lógica 0% |
 | 8 | Alertas inteligentes | 2 | Medio | Nuevo |
 | ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
 | 4b | Caja: movimientos manuales | 3 | Bajo | Modelo existe, falta UI |

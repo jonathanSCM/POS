@@ -33,6 +33,15 @@ function serializeSale(sale: any) {
     customer: sale.customer
       ? { ...sale.customer, storeCreditBalance: sale.customer.storeCreditBalance?.toString() }
       : sale.customer,
+    returns: (sale.returns || []).map((r: any) => ({
+      ...r,
+      totalRefunded: r.totalRefunded?.toString(),
+      lines: (r.lines || []).map((l: any) => ({
+        ...l,
+        quantity: l.quantity?.toString(),
+        refundAmount: l.refundAmount?.toString(),
+      })),
+    })),
   }
 }
 
@@ -324,6 +333,7 @@ export async function getSaleById(id: string) {
         lines: true,
         payments: true,
         customer: true,
+        returns: { include: { lines: true } },
       },
     })
     return sale
@@ -331,6 +341,14 @@ export async function getSaleById(id: string) {
     console.error("Error al obtener venta:", error)
     throw error
   }
+}
+
+// Igual que getSaleById, pero con todos los Decimal convertidos a string --
+// para usar en componentes cliente (ej. el dialogo de devolucion/anulacion).
+export async function getSaleForActions(id: string) {
+  const sale = await getSaleById(id)
+  if (!sale) return null
+  return serializeSale(sale)
 }
 
 // Vista pública (sin login) de la factura digital, accedida vía QR.

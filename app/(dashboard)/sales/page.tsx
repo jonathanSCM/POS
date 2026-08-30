@@ -4,10 +4,17 @@ import { formatDateTime } from "@/lib/dates"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  COMPLETED: { label: "Completada", className: "bg-success/15 text-success" },
+  PARTIALLY_RETURNED: { label: "Devolución parcial", className: "bg-warning/15 text-warning" },
+  RETURNED: { label: "Devuelta", className: "bg-warning/15 text-warning" },
+  VOIDED: { label: "Anulada", className: "bg-danger/15 text-danger" },
+}
+
 export default async function SalesPage() {
   const currency = await getCurrencySymbol()
   const sales = await prisma.sale.findMany({
-    where: { status: "COMPLETED" },
+    where: { status: { in: ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED", "VOIDED"] } },
     include: {
       lines: true,
       payments: true,
@@ -16,8 +23,10 @@ export default async function SalesPage() {
     take: 100,
   })
 
-  const totalSales = sales.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
-  const totalCount = sales.length
+  // Las anuladas y devueltas totalmente no cuentan como ingreso real.
+  const revenueSales = sales.filter((s) => s.status === "COMPLETED" || s.status === "PARTIALLY_RETURNED")
+  const totalSales = revenueSales.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
+  const totalCount = revenueSales.length
 
   return (
     <div className="min-h-screen p-8">
@@ -25,7 +34,7 @@ export default async function SalesPage() {
         <div className="flex justify-between items-start mb-10">
           <div>
             <h1 className="text-4xl font-bold text-text mb-2">Historial de Ventas</h1>
-            <p className="text-muted">Últimas {totalCount} ventas completadas</p>
+            <p className="text-muted">Últimas {sales.length} ventas (incluye anuladas y devueltas)</p>
           </div>
           <Link
             href="/"
@@ -65,6 +74,7 @@ export default async function SalesPage() {
                   <th className="px-6 py-3 text-center text-sm font-bold text-text">Monto</th>
                   <th className="px-6 py-3 text-left text-sm font-bold text-text">Método</th>
                   <th className="px-6 py-3 text-left text-sm font-bold text-text">Fecha</th>
+                  <th className="px-6 py-3 text-center text-sm font-bold text-text">Estado</th>
                   <th className="px-6 py-3 text-center text-sm font-bold text-text">Acción</th>
                 </tr>
               </thead>
@@ -99,6 +109,11 @@ export default async function SalesPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-muted">
                       {formatDateTime(sale.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_LABELS[sale.status]?.className || ""}`}>
+                        {STATUS_LABELS[sale.status]?.label || sale.status}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <Link

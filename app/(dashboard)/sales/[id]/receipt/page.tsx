@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import Link from "next/link"
 import { ReceiptActions } from "./ReceiptActions"
 import { ReceiptContent } from "@/components/shared/ReceiptContent"
+import { SaleActions } from "@/components/sales/SaleActions"
 import { getCurrencySymbol } from "@/lib/settings"
 
 export default async function ReceiptPage({
@@ -40,6 +41,9 @@ export default async function ReceiptPage({
 
       {/* Botón de impresión (no se imprime) */}
       <ReceiptActions />
+
+      {/* Anular / devolver (no se imprime) */}
+      <SaleActions saleId={sale.id} />
     </div>
   )
 }
