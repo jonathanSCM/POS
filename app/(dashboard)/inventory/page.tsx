@@ -26,9 +26,16 @@ export default function InventoryHubPage() {
     {
       id: "movements",
       title: "Movimientos",
-      description: "Trazabilidad completa",
+      description: "Trazabilidad por producto",
       icon: "🔍",
       href: "/inventory/movements",
+    },
+    {
+      id: "kardex",
+      title: "Kardex",
+      description: "Todos los movimientos, una sola vista",
+      icon: "📊",
+      href: "/inventory/kardex",
     },
   ]
 

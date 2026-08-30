@@ -39,7 +39,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 ## Fase 2 — Inventario y devoluciones
 
-### 5. Kardex consolidado *(mayormente ya existe)*
+### ✅ 5. Kardex consolidado — RESUELTO
 **Qué falta:** una vista `/inventory/kardex` que liste TODOS los productos con su movimiento reciente en una sola tabla filtrable por fecha/tipo, en vez de tener que entrar producto por producto. Es más "juntar lo que ya hay" que construir de cero.
 
 **Esfuerzo:** Bajo
@@ -117,7 +117,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 |---|-------|------|----------|--------|
 | ✅ 1 | Clientes + historial — RESUELTO | 1 | Medio | Modelo existe, nada conectado |
 | ✅ 2 | Ventas a crédito — RESUELTO | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
-| 5 | Kardex consolidado | 2 | Bajo | Mayormente ya existe |
+| ✅ 5 | Kardex consolidado — RESUELTO | 2 | Bajo | Mayormente ya existe |
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
 | ✅ 9 | Devoluciones/anulaciones — RESUELTO | 2 | Medio-Alto | Modelo existe, lógica 0% |
 | 8 | Alertas inteligentes | 2 | Medio | Nuevo |
