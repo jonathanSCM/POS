@@ -79,7 +79,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Bajo
 
-### 12. Dashboard gerencial mejorado
+### ✅ 12. Dashboard gerencial mejorado — RESUELTO
 **Qué hay que hacer:** el dashboard de inicio (`/`) hoy tiene stats fijos de ejemplo (`$0.00`, `4`, `2` — nunca se conectaron a datos reales, es deuda técnica vieja). Conectarlo a los mismos cálculos que ya existen en `/reports` (ventas del mes, utilidad, ticket promedio, top productos, por método de pago) más lo nuevo de esta fase (cuentas por cobrar/pagar), y agregar comparación contra el período anterior (ej. "+12% vs. la semana pasada").
 
 **Esfuerzo:** Medio · **Depende de:** #2 y #3 para las cuentas por cobrar/pagar (el resto ya existe)
@@ -123,7 +123,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | ✅ 8 | Alertas inteligentes — RESUELTO | 2 | Medio | Nuevo |
 | ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
 | 4b | Caja: movimientos manuales | 3 | Bajo | Modelo existe, falta UI |
-| 12 | Dashboard gerencial | 3 | Medio | Parcial (stats hardcodeados hoy) |
+| ✅ 12 | Dashboard gerencial — RESUELTO | 3 | Medio | Parcial (stats hardcodeados hoy) |
 | 6 | Costo/margen/utilidad | — | — | ✅ **Ya hecho** |
 | 4 | Apertura/cierre + historial caja | — | — | ✅ **Ya hecho** |
 | 7a | Productos más vendidos | — | — | ✅ **Ya hecho** |
