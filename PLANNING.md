@@ -25,7 +25,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Medio · **Depende de:** nada · **Habilita:** #2
 
-### 2. Ventas a crédito ("fiado") y cuentas por cobrar
+### ✅ 2. Ventas a crédito ("fiado") y cuentas por cobrar — RESUELTO
 **Qué hay que hacer:**
 - `Sale` necesita un estado de pago: agregar `PaymentStatus` (`PAID`/`PARTIAL`/`PENDING`) o reusar `storeCreditBalance` del cliente (restarle al vender a crédito, sumarle al abonar).
 - Nuevo modelo `CustomerPayment` (abonos): monto, fecha, método, a qué cliente.
@@ -116,7 +116,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | # | Punto | Fase | Esfuerzo | Estado |
 |---|-------|------|----------|--------|
 | ✅ 1 | Clientes + historial — RESUELTO | 1 | Medio | Modelo existe, nada conectado |
-| 2 | Ventas a crédito | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
+| ✅ 2 | Ventas a crédito — RESUELTO | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
 | 5 | Kardex consolidado | 2 | Bajo | Mayormente ya existe |
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
 | 9 | Devoluciones/anulaciones | 2 | Medio-Alto | Modelo existe, lógica 0% |

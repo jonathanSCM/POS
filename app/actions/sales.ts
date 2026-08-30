@@ -46,7 +46,7 @@ export async function createSale(data: {
     quantity: number
     unitPrice: string
   }>
-  paymentMethod: "CASH" | "CARD" | "QR" | "TRANSFER"
+  paymentMethod: "CASH" | "CARD" | "QR" | "TRANSFER" | "CREDIT"
   total: string
   isInvoiced?: boolean
   customerTaxId?: string
@@ -55,6 +55,10 @@ export async function createSale(data: {
   try {
     const session = await getServerSession(authOptions)
     if (!session) throw new Error("No autenticado")
+
+    if (data.paymentMethod === "CREDIT" && !data.customerId) {
+      throw new Error("Para vender a crédito hay que identificar al cliente")
+    }
 
     // Crear venta con transacción
     const sale = await prisma.$transaction(async (tx) => {
@@ -125,6 +129,7 @@ export async function createSale(data: {
           total: new Prisma.Decimal(total.toString()),
           completedAt: new Date(),
           publicToken: randomUUID(),
+          paymentStatus: data.paymentMethod === "CREDIT" ? "PENDING" : "PAID",
           isInvoiced: Boolean(data.isInvoiced),
           invoiceNumber,
           customerTaxId: data.isInvoiced ? data.customerTaxId || null : null,
@@ -191,6 +196,15 @@ export async function createSale(data: {
       // cerrar — tarjeta/QR/transferencia no pasan por el cajón. Se suma al
       // efectivo esperado de la sesión abierta y queda un CashMovement de
       // auditoría (antes este modelo existía en el schema pero no se usaba).
+      // Venta a crédito: no entra dinero, se resta del saldo de cuenta del
+      // cliente (queda debiendo). No toca la caja registradora.
+      if (data.paymentMethod === "CREDIT") {
+        await tx.customer.update({
+          where: { id: data.customerId! },
+          data: { storeCreditBalance: { decrement: new Prisma.Decimal(total.toString()) } },
+        })
+      }
+
       if (openSession && data.paymentMethod === "CASH") {
         const cashAmount = new Prisma.Decimal(total.toString())
 

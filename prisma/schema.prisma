@@ -16,7 +16,8 @@ datasource db {
 // StockMovementType: PURCHASE_IN, SALE_OUT, RETURN_IN, ADJUSTMENT_IN, ADJUSTMENT_OUT, VOID_RESTOCK
 // PurchaseOrderStatus: DRAFT, RECEIVED, CANCELLED
 // SaleStatus: HELD, COMPLETED, VOIDED, RETURNED, PARTIALLY_RETURNED
-// PaymentMethod: CASH, CARD, QR
+// PaymentMethod: CASH, CARD, QR, TRANSFER, CREDIT
+// Sale.paymentStatus: PAID, PENDING
 // CashMovementType: SALE_CASH_IN, PAID_IN, PAID_OUT, REFUND_CASH_OUT
 // RegisterSessionStatus: OPEN, CLOSED
 // AuditAction: SALE_VOID, STOCK_ADJUSTMENT, PRICE_CHANGE, REGISTER_DISCREPANCY, USER_CREATED, USER_PASSWORD_RESET, RETURN_PROCESSED
@@ -43,6 +44,7 @@ model User {
   auditLogs           AuditLog[]
   purchaseOrdersMade  PurchaseOrder[]
   returnsProcessed    Return[]
+  customerPayments    CustomerPayment[]
 
   @@map("users")
 }
@@ -196,16 +198,39 @@ model Customer {
   taxId               String?
   email               String?
   address             String?
+  // Saldo de cuenta corriente del cliente: negativo = el cliente debe (fiado
+  // pendiente), positivo = a favor del cliente (pago de mas / credito
+  // prepagado). Las ventas a credito lo restan, los abonos (CustomerPayment)
+  // lo suman.
   storeCreditBalance  Decimal   @default(0)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  sales Sale[]
+  sales    Sale[]
+  payments CustomerPayment[]
 
   @@index([name])
   @@index([phone])
   @@index([taxId])
   @@map("customers")
+}
+
+// Abono de un cliente a su cuenta corriente (paga parte o todo lo que debia
+// de ventas a credito anteriores). No esta ligado a una venta puntual: el
+// fiado se maneja como saldo de cuenta, no factura por factura.
+model CustomerPayment {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  amount     Decimal
+  method     String // CASH, CARD, QR, TRANSFER
+  note       String?
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@map("customer_payments")
 }
 
 // ─────────────────────────────────────────────
@@ -228,6 +253,11 @@ model Sale {
   discountTotal     Decimal      @default(0)
   taxTotal          Decimal      @default(0)
   total             Decimal
+
+  // PAID: se cobro al momento (efectivo/tarjeta/QR/transferencia).
+  // PENDING: venta a credito ("fiado") -- el saldo vive en
+  // Customer.storeCreditBalance, no se rastrea pago parcial por venta.
+  paymentStatus        String   @default("PAID")
 
   isInvoiced           Boolean  @default(false)
   invoiceNumber        Int?     @unique

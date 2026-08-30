@@ -19,6 +19,7 @@ const PAYMENT_COLORS: Record<string, string> = {
   CARD: "#8b5cf6",
   QR: "#c084fc",
   TRANSFER: "#ffb020",
+  CREDIT: "#fb7185",
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -26,6 +27,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   CARD: "Tarjeta",
   QR: "QR",
   TRANSFER: "Transferencia",
+  CREDIT: "Crédito",
 }
 
 export function SalesTrendChart({

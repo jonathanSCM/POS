@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { customerSchema } from "@/lib/validations"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { Prisma } from "@prisma/client"
+import Decimal from "decimal.js"
 
 function serializeCustomer(customer: any) {
   return {
@@ -97,6 +99,11 @@ export async function getCustomerWithHistory(id: string) {
         orderBy: { createdAt: "desc" },
         take: 100,
       },
+      payments: {
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        include: { user: { select: { name: true } } },
+      },
     },
   })
 
@@ -115,5 +122,86 @@ export async function getCustomerWithHistory(id: string) {
         lineTotal: l.lineTotal.toString(),
       })),
     })),
+    payments: customer.payments.map((p) => ({
+      ...p,
+      amount: p.amount.toString(),
+    })),
   }
+}
+
+// Abono del cliente a su cuenta corriente. Si es en efectivo y hay una caja
+// abierta, tambien se refleja ahi (mismo patron que las ventas en efectivo).
+export async function registerCustomerPayment(data: {
+  customerId: string
+  amount: string
+  method: "CASH" | "CARD" | "QR" | "TRANSFER"
+  note?: string
+}) {
+  const session = await getServerSession(authOptions)
+  if (!session) throw new Error("No autorizado")
+
+  const amount = new Decimal(data.amount)
+  if (amount.lte(0)) throw new Error("El monto debe ser mayor a cero")
+
+  const userId = (session.user as any).id as string
+
+  return prisma.$transaction(async (tx) => {
+    const payment = await tx.customerPayment.create({
+      data: {
+        customerId: data.customerId,
+        amount: new Prisma.Decimal(amount.toString()),
+        method: data.method,
+        note: data.note || null,
+        userId,
+      },
+    })
+
+    await tx.customer.update({
+      where: { id: data.customerId },
+      data: { storeCreditBalance: { increment: new Prisma.Decimal(amount.toString()) } },
+    })
+
+    if (data.method === "CASH") {
+      const openSession = await tx.cashRegisterSession.findFirst({
+        where: { status: "OPEN" },
+        orderBy: { openedAt: "desc" },
+      })
+      if (openSession) {
+        await tx.cashRegisterSession.update({
+          where: { id: openSession.id },
+          data: { expectedCash: { increment: new Prisma.Decimal(amount.toString()) } },
+        })
+        await tx.cashMovement.create({
+          data: {
+            sessionId: openSession.id,
+            type: "PAID_IN",
+            amount: new Prisma.Decimal(amount.toString()),
+            note: `Abono de cliente${data.note ? `: ${data.note}` : ""}`,
+            userId,
+          },
+        })
+      }
+    }
+
+    return { ...payment, amount: payment.amount.toString() }
+  })
+}
+
+// Total que deben todos los clientes juntos (suma de saldos negativos), para
+// la tarjeta de "Cuentas por Cobrar".
+export async function getAccountsReceivableTotal() {
+  const session = await getServerSession(authOptions)
+  if (!session) throw new Error("No autorizado")
+
+  const customers = await prisma.customer.findMany({
+    where: { storeCreditBalance: { lt: 0 } },
+    select: { storeCreditBalance: true },
+  })
+
+  const total = customers.reduce(
+    (sum, c) => sum.plus(new Decimal(c.storeCreditBalance).abs()),
+    new Decimal(0)
+  )
+
+  return { total: total.toString(), customersOwing: customers.length }
 }

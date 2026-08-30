@@ -20,7 +20,7 @@ export interface Customer {
 }
 
 export interface Payment {
-  method: "CASH" | "CARD" | "QR" | "TRANSFER"
+  method: "CASH" | "CARD" | "QR" | "TRANSFER" | "CREDIT"
 }
 
 interface CartStore {

@@ -225,7 +225,7 @@ export default async function ReportsPage({
               {paymentMethods.map((p, idx) => (
                 <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                   <span className="text-text font-medium">
-                    {p.method === "CASH" ? "💵 Efectivo" : p.method === "CARD" ? "💳 Tarjeta" : p.method === "QR" ? "📱 QR" : "🏦 Transferencia"}
+                    {p.method === "CASH" ? "💵 Efectivo" : p.method === "CARD" ? "💳 Tarjeta" : p.method === "QR" ? "📱 QR" : p.method === "TRANSFER" ? "🏦 Transferencia" : "🧾 Crédito"}
                   </span>
                   <div className="text-right">
                     <p className="font-bold text-text">{currency}{new Decimal(p._sum.amount || 0).toFixed(2)}</p>

@@ -3,8 +3,11 @@
 import { getCustomers, createCustomer } from "@/app/actions/customers"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Decimal from "decimal.js"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 
 export default function CustomersPage() {
+  const currency = useCurrencySymbol()
   const [customers, setCustomers] = useState<any[]>([])
   const [formData, setFormData] = useState({ name: "", phone: "", taxId: "", email: "", address: "" })
   const [isLoading, setIsLoading] = useState(false)
@@ -44,6 +47,12 @@ export default function CustomersPage() {
     )
   })
 
+  const customersOwing = customers.filter((c) => new Decimal(c.storeCreditBalance || 0).lt(0))
+  const totalReceivable = customersOwing.reduce(
+    (sum, c) => sum.plus(new Decimal(c.storeCreditBalance).abs()),
+    new Decimal(0)
+  )
+
   return (
     <div className="p-8 max-w-6xl">
       <div className="flex justify-between items-start mb-8">
@@ -58,6 +67,16 @@ export default function CustomersPage() {
           ← Dashboard
         </Link>
       </div>
+
+      {totalReceivable.gt(0) && (
+        <div className="glass rounded-2xl p-6 mb-8 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-muted mb-1">Total por Cobrar</p>
+            <p className="text-3xl font-bold text-danger">{currency}{totalReceivable.toFixed(2)}</p>
+          </div>
+          <p className="text-sm text-muted">{customersOwing.length} cliente{customersOwing.length !== 1 ? "s" : ""} con saldo pendiente</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Formulario */}
@@ -153,7 +172,14 @@ export default function CustomersPage() {
                       <p className="font-semibold text-text">{c.name}</p>
                       <p className="text-xs text-muted">📱 {c.phone}{c.taxId ? ` • NIT: ${c.taxId}` : ""}</p>
                     </div>
-                    <span className="text-xs text-muted">{c._count.sales} compras</span>
+                    <div className="text-right">
+                      <span className="text-xs text-muted block">{c._count.sales} compras</span>
+                      {new Decimal(c.storeCreditBalance || 0).lt(0) && (
+                        <span className="text-xs text-danger font-semibold">
+                          Debe {currency}{new Decimal(c.storeCreditBalance).abs().toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}

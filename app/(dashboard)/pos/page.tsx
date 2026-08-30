@@ -24,7 +24,7 @@ interface CompletedSale {
   customerName: string | null | undefined
   subtotal: string
   total: string
-  paymentMethod: "CASH" | "CARD" | "QR" | "TRANSFER"
+  paymentMethod: "CASH" | "CARD" | "QR" | "TRANSFER" | "CREDIT"
   isInvoiced: boolean
   invoiceNumber: number | null
   customerTaxId: string | null
@@ -57,7 +57,7 @@ export default function POSPage() {
   const [showHeldSales, setShowHeldSales] = useState(false)
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null)
   const [pendingProduct, setPendingProduct] = useState<any>(null)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"CASH" | "CARD" | "QR" | "TRANSFER" | null>(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"CASH" | "CARD" | "QR" | "TRANSFER" | "CREDIT" | null>(null)
   const [isInvoiced, setIsInvoiced] = useState(false)
   const [customerTaxId, setCustomerTaxId] = useState("")
   const [customerBusinessName, setCustomerBusinessName] = useState("")
@@ -213,6 +213,11 @@ export default function POSPage() {
       return
     }
 
+    if (selectedPaymentMethod === "CREDIT" && !customer) {
+      alert("Para vender a crédito hay que identificar al cliente")
+      return
+    }
+
     setIsProcessing(true)
     try {
       const response = await createSale({
@@ -353,6 +358,7 @@ export default function POSPage() {
                 {completedSale.paymentMethod === "CARD" && "💳 TARJETA"}
                 {completedSale.paymentMethod === "QR" && "📱 QR"}
                 {completedSale.paymentMethod === "TRANSFER" && "🏦 TRANSFERENCIA"}
+                {completedSale.paymentMethod === "CREDIT" && "🧾 CRÉDITO (FIADO)"}
               </p>
             </div>
 
@@ -481,6 +487,20 @@ export default function POSPage() {
                     }`}
                   >
                     🏦 Transferencia
+                  </button>
+                  <button
+                    onClick={() => customer && setSelectedPaymentMethod("CREDIT")}
+                    disabled={!customer}
+                    title={!customer ? "Selecciona un cliente para vender a crédito" : ""}
+                    className={`col-span-2 px-3 py-3 rounded-lg font-bold text-sm transition ${
+                      selectedPaymentMethod === "CREDIT"
+                        ? "bg-danger text-white border-2 border-red-800"
+                        : !customer
+                        ? "bg-white/5 text-muted border-2 border-border opacity-50 cursor-not-allowed"
+                        : "bg-white/10 text-text border-2 border-border hover:bg-white/15"
+                    }`}
+                  >
+                    🧾 Crédito (Fiado){!customer && " — requiere cliente"}
                   </button>
                 </div>
               </div>

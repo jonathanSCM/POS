@@ -93,7 +93,9 @@ export default async function SalesPage() {
                         ? "💳 Tarjeta"
                         : sale.payments[0]?.method === "QR"
                         ? "📱 QR"
-                        : "🏦 Transferencia"}
+                        : sale.payments[0]?.method === "TRANSFER"
+                        ? "🏦 Transferencia"
+                        : "🧾 Crédito"}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted">
                       {formatDateTime(sale.createdAt)}
