@@ -57,7 +57,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Medio-Alto (toca stock, caja y auditoría a la vez)
 
-### 8. Alertas inteligentes de reposición
+### ✅ 8. Alertas inteligentes de reposición — RESUELTO
 **Qué hay que hacer:** calcular velocidad de venta (unidades/semana promedio de las últimas N semanas por producto) y comparar contra el stock actual para estimar "días de stock restante". Requiere una query de agregación un poco más elaborada que la alerta actual de stock mínimo fijo.
 
 **Esfuerzo:** Medio · **Depende de:** tener suficiente historial de ventas acumulado para que la estimación sirva (no tiene sentido con pocos días de datos)
@@ -120,7 +120,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | ✅ 5 | Kardex consolidado — RESUELTO | 2 | Bajo | Mayormente ya existe |
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
 | ✅ 9 | Devoluciones/anulaciones — RESUELTO | 2 | Medio-Alto | Modelo existe, lógica 0% |
-| 8 | Alertas inteligentes | 2 | Medio | Nuevo |
+| ✅ 8 | Alertas inteligentes — RESUELTO | 2 | Medio | Nuevo |
 | ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
 | 4b | Caja: movimientos manuales | 3 | Bajo | Modelo existe, falta UI |
 | 12 | Dashboard gerencial | 3 | Medio | Parcial (stats hardcodeados hoy) |

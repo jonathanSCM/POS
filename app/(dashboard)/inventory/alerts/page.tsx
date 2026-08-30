@@ -2,6 +2,11 @@ import { getBatchesNearExpiry, getExpiredBatches } from "@/app/actions/batches"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { formatDate } from "@/lib/dates"
+import { estimateReorder, needsReorderSoon } from "@/lib/reorder"
+import Decimal from "decimal.js"
+
+const REORDER_PERIOD_DAYS = 30
+const REORDER_THRESHOLD_DAYS = 14
 
 export default async function AlertsPage() {
   const nearExpiry = await getBatchesNearExpiry(30)
@@ -16,6 +21,39 @@ export default async function AlertsPage() {
       },
     },
   })
+
+  // Alertas inteligentes: cuanto se vende por dia en promedio (ultimos 30
+  // dias) vs. el stock actual, para estimar cuantos dias quedan al ritmo
+  // actual de venta -- en vez de solo comparar contra un minimo fijo.
+  const periodStart = new Date()
+  periodStart.setDate(periodStart.getDate() - REORDER_PERIOD_DAYS)
+
+  const [salesInPeriod, allActiveProducts] = await Promise.all([
+    prisma.saleLine.groupBy({
+      by: ["productId"],
+      where: {
+        sale: {
+          status: { in: ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED"] },
+          createdAt: { gte: periodStart },
+        },
+      },
+      _sum: { quantity: true },
+    }),
+    prisma.product.findMany({ where: { active: true } }),
+  ])
+
+  const soldByProduct = new Map(salesInPeriod.map((s) => [s.productId, s._sum.quantity || new Decimal(0)]))
+
+  const smartAlerts = allActiveProducts
+    .map((product) => {
+      const sold = soldByProduct.get(product.id)
+      if (!sold) return null
+      const estimate = estimateReorder(product.stockQty, sold, REORDER_PERIOD_DAYS)
+      if (!needsReorderSoon(estimate, REORDER_THRESHOLD_DAYS)) return null
+      return { product, sold, estimate }
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((a, b) => a.estimate.daysRemaining!.comparedTo(b.estimate.daysRemaining!))
 
   return (
     <div className="p-8 min-h-screen bg-surface backdrop-blur-md">
@@ -90,6 +128,36 @@ export default async function AlertsPage() {
             </div>
           ) : (
             <p className="text-muted">✅ Ningún producto próximo a vencer</p>
+          )}
+        </div>
+
+        {/* Alertas inteligentes de reposición */}
+        <div className="bg-surface backdrop-blur-md border border-primary-2/30 rounded-2xl p-6">
+          <h2 className="text-2xl font-bold text-text mb-1">🧠 Alertas Inteligentes de Reposición</h2>
+          <p className="text-sm text-muted mb-6">
+            Según el ritmo de venta de los últimos {REORDER_PERIOD_DAYS} días, no solo un mínimo fijo. Con poco historial de ventas, tomalo como una aproximación.
+          </p>
+          {smartAlerts.length > 0 ? (
+            <div className="space-y-3">
+              {smartAlerts.map(({ product, sold, estimate }) => (
+                <div key={product.id} className="bg-primary-2/10 rounded-lg p-4 flex justify-between items-center border border-primary-2/20">
+                  <div>
+                    <p className="font-semibold text-text">{product.name}</p>
+                    <p className="text-sm text-muted">SKU: {product.sku}</p>
+                    <p className="text-sm text-primary-2 font-medium">
+                      Vende ~{estimate.weeklyVelocity.toFixed(1)} {product.unitType}/semana — quedan{" "}
+                      {sold ? Math.max(0, Math.round(estimate.daysRemaining!.toNumber())) : 0} días de stock
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-text">{product.stockQty.toString()}</p>
+                    <p className="text-xs text-muted">{product.unitType} en stock</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted text-center py-8">✅ Ningún producto en riesgo de agotarse según su ritmo de venta reciente</p>
           )}
         </div>
 
