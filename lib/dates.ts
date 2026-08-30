@@ -41,6 +41,20 @@ export function formatDate(date: Date | string): string {
   })
 }
 
+// Para fechas puras sin hora (ej. un <input type="date"> como fecha de
+// vencimiento): se guardan como medianoche UTC, y convertirlas a hora de
+// Bolivia (UTC-4) las corre un dia para atras. Estas se muestran leyendo
+// los componentes UTC tal cual, sin aplicar ninguna zona horaria.
+export function formatDateOnly(date: Date | string): string {
+  const d = new Date(date)
+  return d.toLocaleDateString(LOCALE, {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
 export function formatShortDate(date: Date | string): string {
   return new Date(date).toLocaleDateString(LOCALE, {
     timeZone: TIME_ZONE,

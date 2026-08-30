@@ -3,8 +3,11 @@
 import { getSuppliers, createSupplier, deleteSupplier } from "@/app/actions/suppliers"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Decimal from "decimal.js"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 
 export default function SuppliersPage() {
+  const currency = useCurrencySymbol()
   const [suppliers, setSuppliers] = useState<any[]>([])
   const [formData, setFormData] = useState({
     name: "",
@@ -71,6 +74,21 @@ export default function SuppliersPage() {
           ← Dashboard
         </Link>
       </div>
+
+      {(() => {
+        const suppliersOwing = suppliers.filter((s) => new Decimal(s.owed || 0).gt(0))
+        const totalPayable = suppliersOwing.reduce((sum, s) => sum.plus(new Decimal(s.owed)), new Decimal(0))
+        if (totalPayable.lte(0)) return null
+        return (
+          <div className="glass rounded-2xl p-6 mb-8 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted mb-1">Total por Pagar</p>
+              <p className="text-3xl font-bold text-danger">{currency}{totalPayable.toFixed(2)}</p>
+            </div>
+            <p className="text-sm text-muted">{suppliersOwing.length} proveedor{suppliersOwing.length !== 1 ? "es" : ""} con saldo pendiente</p>
+          </div>
+        )
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Formulario */}
@@ -177,13 +195,26 @@ export default function SuppliersPage() {
                       {sup.email && (
                         <p className="text-xs text-muted">✉️ {sup.email}</p>
                       )}
+                      {new Decimal(sup.owed || 0).gt(0) && (
+                        <p className="text-xs text-danger font-semibold mt-1">
+                          Debe {currency}{new Decimal(sup.owed).toFixed(2)}
+                        </p>
+                      )}
                     </div>
-                    <button
-                      onClick={() => handleDelete(sup.id)}
-                      className="px-3 py-1 text-xs font-medium text-danger hover:text-danger hover:bg-danger/10 rounded transition"
-                    >
-                      Eliminar
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link
+                        href={`/suppliers/${sup.id}`}
+                        className="text-xs font-medium text-primary-2 hover:underline"
+                      >
+                        Ver cuenta →
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(sup.id)}
+                        className="px-3 py-1 text-xs font-medium text-danger hover:text-danger hover:bg-danger/10 rounded transition"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

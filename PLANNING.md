@@ -66,7 +66,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 ## Fase 3 — Proveedores y panel gerencial
 
-### 3. Cuentas por pagar a proveedores
+### ✅ 3. Cuentas por pagar a proveedores — RESUELTO
 **Qué hay que hacer:**
 - `PurchaseOrder` no tiene ningún campo de dinero/pago hoy (ni monto total, ni fecha de vencimiento, ni si está pagada) — hay que agregarlos.
 - Nuevo modelo `SupplierPayment` (abonos a proveedor), simétrico a `CustomerPayment` de la Fase 1.
@@ -121,7 +121,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
 | 9 | Devoluciones/anulaciones | 2 | Medio-Alto | Modelo existe, lógica 0% |
 | 8 | Alertas inteligentes | 2 | Medio | Nuevo |
-| 3 | Cuentas por pagar | 3 | Medio | Nuevo |
+| ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
 | 4b | Caja: movimientos manuales | 3 | Bajo | Modelo existe, falta UI |
 | 12 | Dashboard gerencial | 3 | Medio | Parcial (stats hardcodeados hoy) |
 | 6 | Costo/margen/utilidad | — | — | ✅ **Ya hecho** |

@@ -16,7 +16,7 @@ export const supplierSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   contactName: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
 })
 
@@ -48,4 +48,5 @@ export const purchaseOrderSchema = z.object({
     })
   ).min(1, "Agregar al menos un producto"),
   notes: z.string().optional(),
+  dueDate: z.string().optional(),
 })

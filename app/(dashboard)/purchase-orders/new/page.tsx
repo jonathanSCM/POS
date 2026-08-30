@@ -16,6 +16,7 @@ export default function NewPurchaseOrderPage() {
   const [formData, setFormData] = useState({
     supplierId: "",
     notes: "",
+    dueDate: "",
   })
 
   const [lines, setLines] = useState<
@@ -67,6 +68,7 @@ export default function NewPurchaseOrderPage() {
           unitCost: parseFloat(line.unitCost),
         })),
         notes: formData.notes,
+        dueDate: formData.dueDate || undefined,
       })
       router.push("/purchase-orders")
     } catch (err: any) {
@@ -161,6 +163,18 @@ export default function NewPurchaseOrderPage() {
             >
               + Agregar producto
             </button>
+          </div>
+
+          <div>
+            <label className="block text-muted font-medium mb-2">Fecha de vencimiento (opcional)</label>
+            <input
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) =>
+                setFormData({ ...formData, dueDate: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-border rounded-lg"
+            />
           </div>
 
           <div>

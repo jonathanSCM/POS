@@ -15,6 +15,7 @@ datasource db {
 // UnitType: UNIT, KG, LITER, BOX
 // StockMovementType: PURCHASE_IN, SALE_OUT, RETURN_IN, ADJUSTMENT_IN, ADJUSTMENT_OUT, VOID_RESTOCK
 // PurchaseOrderStatus: DRAFT, RECEIVED, CANCELLED
+// PurchaseOrder.paymentStatus: PENDING, PARTIAL, PAID
 // SaleStatus: HELD, COMPLETED, VOIDED, RETURNED, PARTIALLY_RETURNED
 // PaymentMethod: CASH, CARD, QR, TRANSFER, CREDIT
 // Sale.paymentStatus: PAID, PENDING
@@ -45,6 +46,7 @@ model User {
   purchaseOrdersMade  PurchaseOrder[]
   returnsProcessed    Return[]
   customerPayments    CustomerPayment[]
+  supplierPayments    SupplierPayment[]
 
   @@map("users")
 }
@@ -168,11 +170,36 @@ model PurchaseOrder {
   createdAt   DateTime            @default(now())
   receivedAt  DateTime?
 
+  // Cuentas por pagar: monto total de la orden (suma de lineas al crearla),
+  // fecha de vencimiento opcional, y estado de pago segun lo que se le haya
+  // abonado al proveedor (SupplierPayment).
+  totalAmount   Decimal  @default(0)
+  dueDate       DateTime?
+  paymentStatus String   @default("PENDING") // PENDING, PARTIAL, PAID
+
   lines           PurchaseOrderLine[]
   stockMovements  StockMovement[]
   batches         ProductBatch[]
+  payments        SupplierPayment[]
 
   @@map("purchase_orders")
+}
+
+// Abono a una orden de compra puntual (a diferencia del cliente, aca si se
+// paga orden por orden porque cada una tiene su propia fecha de vencimiento).
+model SupplierPayment {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  amount          Decimal
+  method          String // CASH, CARD, QR, TRANSFER
+  note            String?
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  createdAt       DateTime      @default(now())
+
+  @@index([purchaseOrderId])
+  @@map("supplier_payments")
 }
 
 model PurchaseOrderLine {
