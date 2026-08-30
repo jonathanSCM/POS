@@ -3,10 +3,13 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { formatDate } from "@/lib/dates"
 import { estimateReorder, needsReorderSoon } from "@/lib/reorder"
+import { formatDateOnly } from "@/lib/dates"
 import Decimal from "decimal.js"
 
 const REORDER_PERIOD_DAYS = 30
 const REORDER_THRESHOLD_DAYS = 14
+const STALE_PERIOD_DAYS = 60
+const REVENUE_STATUSES = ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED"] as const
 
 export default async function AlertsPage() {
   const nearExpiry = await getBatchesNearExpiry(30)
@@ -54,6 +57,52 @@ export default async function AlertsPage() {
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
     .sort((a, b) => a.estimate.daysRemaining!.comparedTo(b.estimate.daysRemaining!))
+
+  // Productos sin movimiento: no aparecieron en ninguna venta en los
+  // ultimos STALE_PERIOD_DAYS dias. Para darle contexto (no solo "no se
+  // vendio recientemente"), se busca ademas su ultima venta alguna vez,
+  // si tuvo.
+  const staleCutoff = new Date()
+  staleCutoff.setDate(staleCutoff.getDate() - STALE_PERIOD_DAYS)
+
+  const recentlySoldIds = new Set(
+    (
+      await prisma.saleLine.findMany({
+        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: staleCutoff } } },
+        select: { productId: true },
+        distinct: ["productId"],
+      })
+    ).map((l) => l.productId)
+  )
+
+  const staleProducts = allActiveProducts.filter((p) => !recentlySoldIds.has(p.id))
+
+  const everSoldLines =
+    staleProducts.length > 0
+      ? await prisma.saleLine.findMany({
+          where: {
+            productId: { in: staleProducts.map((p) => p.id) },
+            sale: { status: { in: [...REVENUE_STATUSES] } },
+          },
+          select: { productId: true, sale: { select: { createdAt: true } } },
+        })
+      : []
+
+  const lastSoldByProduct = new Map<string, Date>()
+  for (const l of everSoldLines) {
+    const prev = lastSoldByProduct.get(l.productId)
+    if (!prev || l.sale.createdAt > prev) lastSoldByProduct.set(l.productId, l.sale.createdAt)
+  }
+
+  const staleWithContext = staleProducts
+    .map((product) => ({ product, lastSold: lastSoldByProduct.get(product.id) ?? null }))
+    .sort((a, b) => {
+      // Nunca vendidos primero, luego los que hace mas tiempo que no se venden.
+      if (!a.lastSold && !b.lastSold) return 0
+      if (!a.lastSold) return -1
+      if (!b.lastSold) return 1
+      return a.lastSold.getTime() - b.lastSold.getTime()
+    })
 
   return (
     <div className="p-8 min-h-screen bg-surface backdrop-blur-md">
@@ -158,6 +207,33 @@ export default async function AlertsPage() {
             </div>
           ) : (
             <p className="text-muted text-center py-8">✅ Ningún producto en riesgo de agotarse según su ritmo de venta reciente</p>
+          )}
+        </div>
+
+        {/* Productos sin movimiento */}
+        <div className="bg-surface backdrop-blur-md border border-border rounded-2xl p-6">
+          <h2 className="text-2xl font-bold text-text mb-1">🐌 Productos Sin Movimiento</h2>
+          <p className="text-sm text-muted mb-6">Sin ventas en los últimos {STALE_PERIOD_DAYS} días — candidatos a promoción, descuento, o dejar de reponer.</p>
+          {staleWithContext.length > 0 ? (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {staleWithContext.map(({ product, lastSold }) => (
+                <div key={product.id} className="bg-white/5 rounded-lg p-4 flex justify-between items-center border border-border">
+                  <div>
+                    <p className="font-semibold text-text">{product.name}</p>
+                    <p className="text-sm text-muted">SKU: {product.sku}</p>
+                    <p className="text-sm text-muted font-medium">
+                      {lastSold ? `Última venta: ${formatDateOnly(lastSold)}` : "Nunca se ha vendido"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-text">{product.stockQty.toString()}</p>
+                    <p className="text-xs text-muted">{product.unitType} en stock</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted text-center py-8">✅ Todos los productos activos se vendieron en los últimos {STALE_PERIOD_DAYS} días</p>
           )}
         </div>
 

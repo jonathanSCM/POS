@@ -44,7 +44,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Bajo
 
-### 7b. Productos sin movimiento *(la otra mitad de "más vendidos", que ya existe)*
+### ✅ 7b. Productos sin movimiento — RESUELTO
 **Qué hay que hacer:** query de productos activos que NO aparecen en `SaleLine` dentro de un rango de fechas (ej. últimos 30/60/90 días) — alerta simple de "esto no se está moviendo".
 
 **Esfuerzo:** Bajo
@@ -118,7 +118,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | ✅ 1 | Clientes + historial — RESUELTO | 1 | Medio | Modelo existe, nada conectado |
 | ✅ 2 | Ventas a crédito — RESUELTO | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
 | ✅ 5 | Kardex consolidado — RESUELTO | 2 | Bajo | Mayormente ya existe |
-| 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
+| ✅ 7b | Productos sin movimiento — RESUELTO | 2 | Bajo | Nuevo (la mitad "top" ya existe) |
 | ✅ 9 | Devoluciones/anulaciones — RESUELTO | 2 | Medio-Alto | Modelo existe, lógica 0% |
 | ✅ 8 | Alertas inteligentes — RESUELTO | 2 | Medio | Nuevo |
 | ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
