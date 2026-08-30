@@ -30,10 +30,14 @@ function serializeSale(sale: any) {
       amountTendered: p.amountTendered?.toString() ?? null,
       changeGiven: p.changeGiven?.toString() ?? null,
     })),
+    customer: sale.customer
+      ? { ...sale.customer, storeCreditBalance: sale.customer.storeCreditBalance?.toString() }
+      : sale.customer,
   }
 }
 
 export async function createSale(data: {
+  customerId?: string
   customerName?: string
   cashierId: string
   lines: Array<{
@@ -110,6 +114,7 @@ export async function createSale(data: {
       const newSale = await tx.sale.create({
         data: {
           code: saleCode,
+          customerId: data.customerId || null,
           customerName: data.customerName || null,
           cashierId: data.cashierId,
           registerSessionId: openSession?.id,
@@ -216,6 +221,7 @@ export async function createSale(data: {
 }
 
 export async function holdSale(data: {
+  customerId?: string
   customerName?: string
   lines: Array<{
     productId: string
@@ -233,6 +239,7 @@ export async function holdSale(data: {
     const heldSale = await prisma.sale.create({
       data: {
         code: saleCode,
+        customerId: data.customerId || null,
         customerName: data.customerName || null,
         cashierId: (session.user as any)?.id as string,
         status: "HELD",

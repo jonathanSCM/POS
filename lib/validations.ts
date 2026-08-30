@@ -4,6 +4,14 @@ export const categorySchema = z.object({
   name: z.string().min(1, "El nombre es requerido").max(100),
 })
 
+export const customerSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido").max(150),
+  phone: z.string().min(1, "El teléfono es requerido"),
+  taxId: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  address: z.string().optional(),
+})
+
 export const supplierSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   contactName: z.string().optional(),

@@ -13,7 +13,10 @@ export interface CartLine {
 }
 
 export interface Customer {
+  id?: string
   name: string
+  phone?: string
+  taxId?: string
 }
 
 export interface Payment {

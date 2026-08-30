@@ -17,7 +17,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 ## Fase 1 — Clientes y crédito (fundamento para varios puntos)
 
-### 1. Clientes reales + historial de compras
+### ✅ 1. Clientes reales + historial de compras — RESUELTO
 **Qué hay que hacer:**
 - Agregar campo `taxId` (NIT) a `Customer` — requiere migración.
 - Reemplazar `CustomerPicker` (que hoy solo guarda un nombre suelto) por un buscador real: busca por nombre/teléfono/NIT, crea el cliente si no existe, y liga la venta a `customerId` de verdad (`createSale` ya tiene el campo `customerId` en el modelo `Sale`, pero la acción actual nunca lo llena).
@@ -115,7 +115,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 
 | # | Punto | Fase | Esfuerzo | Estado |
 |---|-------|------|----------|--------|
-| 1 | Clientes + historial | 1 | Medio | Modelo existe, nada conectado |
+| ✅ 1 | Clientes + historial — RESUELTO | 1 | Medio | Modelo existe, nada conectado |
 | 2 | Ventas a crédito | 1 | Medio-Alto | Nuevo (usa `storeCreditBalance` ya existente) |
 | 5 | Kardex consolidado | 2 | Bajo | Mayormente ya existe |
 | 7b | Productos sin movimiento | 2 | Bajo | Nuevo (la mitad "top" ya existe) |

@@ -56,6 +56,14 @@ export default async function DashboardPage() {
       roles: ["ADMIN", "MANAGER"],
     },
     {
+      id: "customers",
+      title: "Clientes",
+      description: "Base de clientes e historial",
+      icon: "🧑‍🤝‍🧑",
+      href: "/customers",
+      roles: ["ADMIN", "MANAGER", "CASHIER"],
+    },
+    {
       id: "reports",
       title: "Reportes",
       description: "Análisis y gráficos",

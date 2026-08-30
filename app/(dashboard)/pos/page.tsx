@@ -131,6 +131,7 @@ export default function POSPage() {
     setIsProcessing(true)
     try {
       const held = await holdSale({
+        customerId: customer?.id,
         customerName: customer?.name,
         lines: lines.map((l) => ({
           productId: l.productId,
@@ -159,7 +160,10 @@ export default function POSPage() {
     if (sale.customerName) {
       useCartStore.setState({
         customer: {
+          id: sale.customerId || undefined,
           name: sale.customerName,
+          phone: sale.customer?.phone,
+          taxId: sale.customer?.taxId || undefined,
         },
       })
     }
@@ -212,6 +216,7 @@ export default function POSPage() {
     setIsProcessing(true)
     try {
       const response = await createSale({
+        customerId: customer?.id,
         customerName: customer?.name,
         cashierId: (session?.user as any)?.id as string,
         lines: lines.map((l) => ({

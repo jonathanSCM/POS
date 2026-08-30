@@ -193,6 +193,7 @@ model Customer {
   id                  String   @id @default(cuid())
   name                String
   phone               String
+  taxId               String?
   email               String?
   address             String?
   storeCreditBalance  Decimal   @default(0)
@@ -203,6 +204,7 @@ model Customer {
 
   @@index([name])
   @@index([phone])
+  @@index([taxId])
   @@map("customers")
 }
 
