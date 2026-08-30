@@ -69,6 +69,17 @@ export default function POSPage() {
     })()
   }, [])
 
+  // Si hay un cliente seleccionado y se marca "venta con factura", se
+  // autocompletan NIT y razón social con los datos ya registrados del
+  // cliente -- se puede editar igual por si la factura va a nombre de
+  // otra razón social puntual.
+  useEffect(() => {
+    if (isInvoiced && customer) {
+      setCustomerBusinessName(customer.name || "")
+      setCustomerTaxId(customer.taxId || "")
+    }
+  }, [isInvoiced, customer])
+
   useBarcodeScanner((barcode) => {
     handleBarcodeScanned(barcode)
   })
