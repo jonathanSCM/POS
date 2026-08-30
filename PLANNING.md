@@ -74,7 +74,7 @@ Roadmap de las 14 ideas propuestas, organizadas en fases por dependencia (unas n
 
 **Esfuerzo:** Medio · **Depende de:** nada, pero comparte patrón con #2 (conviene hacerlos juntos o uno inmediatamente después del otro)
 
-### 4b. Control de caja: movimientos manuales
+### ✅ 4b. Control de caja: movimientos manuales — RESUELTO
 **Qué hay que hacer:** ya existe todo el modelo (`CashMovement` con tipos `PAID_IN`/`PAID_OUT` ya en el enum) — falta un formulario simple en `/register` para "Registrar salida de efectivo" (ej. pagarle a un proveedor en efectivo, un retiro) o "Registrar entrada" que no venga de una venta.
 
 **Esfuerzo:** Bajo
@@ -122,7 +122,7 @@ Esto ya estaba planeado como la "Etapa 2" del proyecto original (bot de WhatsApp
 | ✅ 9 | Devoluciones/anulaciones — RESUELTO | 2 | Medio-Alto | Modelo existe, lógica 0% |
 | ✅ 8 | Alertas inteligentes — RESUELTO | 2 | Medio | Nuevo |
 | ✅ 3 | Cuentas por pagar — RESUELTO | 3 | Medio | Nuevo |
-| 4b | Caja: movimientos manuales | 3 | Bajo | Modelo existe, falta UI |
+| ✅ 4b | Caja: movimientos manuales — RESUELTO | 3 | Bajo | Modelo existe, falta UI |
 | ✅ 12 | Dashboard gerencial — RESUELTO | 3 | Medio | Parcial (stats hardcodeados hoy) |
 | 6 | Costo/margen/utilidad | — | — | ✅ **Ya hecho** |
 | 4 | Apertura/cierre + historial caja | — | — | ✅ **Ya hecho** |

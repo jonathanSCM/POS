@@ -24,6 +24,10 @@ export default function RegisterPage() {
   const [actualCash, setActualCash] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
+  const [manualType, setManualType] = useState<"PAID_IN" | "PAID_OUT">("PAID_IN")
+  const [manualAmount, setManualAmount] = useState("")
+  const [manualNote, setManualNote] = useState("")
+  const [isSavingManual, setIsSavingManual] = useState(false)
 
   useEffect(() => {
     loadSession()
@@ -91,6 +95,39 @@ export default function RegisterPage() {
       setMessage("❌ Error: " + (error as any).message)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleManualMovement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSavingManual(true)
+    setMessage("")
+
+    try {
+      const response = await fetch("/api/register/manual-movement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: manualType,
+          amount: new Decimal(manualAmount || 0).toString(),
+          note: manualNote,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage(`✅ Movimiento registrado: ${manualType === "PAID_IN" ? "entrada" : "salida"} de ${currency}${new Decimal(manualAmount).toFixed(2)}`)
+        setManualAmount("")
+        setManualNote("")
+        await loadSession()
+      } else {
+        setMessage(`❌ ${data.error || "Error al registrar el movimiento"}`)
+      }
+    } catch (error) {
+      setMessage("❌ Error: " + (error as any).message)
+    } finally {
+      setIsSavingManual(false)
     }
   }
 
@@ -244,6 +281,65 @@ export default function RegisterPage() {
             </div>
           )}
         </div>
+
+        {/* Movimiento manual: retiros, gastos menores en efectivo, o meter plata extra al cajón */}
+        {session?.status === "OPEN" && (
+          <div className="mt-8 bg-surface backdrop-blur-md border border-border rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-text mb-2">Registrar Movimiento Manual</h2>
+            <p className="text-sm text-muted mb-6">
+              Para dinero que entra o sale de la caja sin ser una venta, un abono de cliente ni un pago a proveedor — ej. un retiro, un gasto menor pagado en efectivo.
+            </p>
+            <form onSubmit={handleManualMovement} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-muted mb-2">Tipo</label>
+                <select
+                  value={manualType}
+                  onChange={(e) => setManualType(e.target.value as "PAID_IN" | "PAID_OUT")}
+                  className="w-full px-4 py-3"
+                  disabled={isSavingManual}
+                >
+                  <option value="PAID_IN">➕ Entrada</option>
+                  <option value="PAID_OUT">➖ Salida</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-muted mb-2">Monto</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={manualAmount}
+                  onChange={(e) => setManualAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                  className="w-full px-4 py-3"
+                  disabled={isSavingManual}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium text-muted mb-2">Motivo</label>
+                <input
+                  type="text"
+                  value={manualNote}
+                  onChange={(e) => setManualNote(e.target.value)}
+                  placeholder="Ej: retiro para depósito"
+                  required
+                  className="w-full px-4 py-3"
+                  disabled={isSavingManual}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSavingManual || !manualAmount || !manualNote.trim()}
+                className={`px-4 py-3 rounded-lg font-bold transition disabled:opacity-40 text-white ${
+                  manualType === "PAID_IN" ? "bg-success hover:brightness-110" : "bg-danger hover:brightness-110"
+                }`}
+              >
+                {isSavingManual ? "Guardando..." : "Registrar"}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   )
