@@ -149,7 +149,7 @@ export function CustomerPicker() {
       />
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-surface backdrop-blur-md border border-border rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 glass-overlay rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto">
           {results.map((c) => (
             <button
               key={c.id}

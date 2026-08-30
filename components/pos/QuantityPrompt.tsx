@@ -63,7 +63,7 @@ export function QuantityPrompt({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-sm glass rounded-2xl p-6 shadow-theme">
+      <div className="w-full max-w-sm glass-overlay rounded-2xl p-6 shadow-theme">
         <h3 className="text-lg font-bold text-text mb-1">{productName}</h3>
         <p className="text-sm text-muted mb-5">
           {currency}{unitPrice.toFixed(2)} por {subUnit.baseLabel}

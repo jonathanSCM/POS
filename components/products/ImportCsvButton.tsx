@@ -69,7 +69,7 @@ export function ImportCsvButton() {
       </label>
 
       {(result || error) && (
-        <div className="absolute right-0 mt-2 w-80 bg-surface backdrop-blur-md border border-border rounded-xl p-4 shadow-theme z-50 text-sm">
+        <div className="absolute right-0 mt-2 w-80 glass-overlay rounded-xl p-4 shadow-theme z-50 text-sm">
           {error && <p className="text-danger">{error}</p>}
           {result && (
             <>

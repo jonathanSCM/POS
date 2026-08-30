@@ -23,7 +23,7 @@ export default async function DashboardLayout({
     <CurrencyProvider symbol={currencySymbol}>
     <div className="min-h-screen print:min-h-0 print:bg-white">
       {/* Topbar */}
-      <div className="glass sticky top-0 z-40 print:hidden">
+      <div className="glass-overlay sticky top-0 z-40 print:hidden">
         <div className="max-w-full mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary to-accent">

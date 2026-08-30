@@ -69,7 +69,7 @@ export function ProductSearch({
       />
 
       {isOpen && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-surface backdrop-blur-md border border-border rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 glass-overlay rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
           {filtered.map((product) => (
             <button
               key={product.id}
@@ -86,7 +86,7 @@ export function ProductSearch({
       )}
 
       {isOpen && query && filtered.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-surface backdrop-blur-md border border-border rounded-lg shadow-lg z-50 p-4 text-center text-muted">
+        <div className="absolute top-full left-0 right-0 mt-2 glass-overlay rounded-lg shadow-lg z-50 p-4 text-center text-muted">
           Sin resultados
         </div>
       )}

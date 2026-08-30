@@ -22,7 +22,7 @@ export function PaymentDialog({ onClose, onComplete }: PaymentDialogProps) {
 
   return (
     <div className="fixed inset-0 bg-primary bg-opacity-50 flex items-end z-50">
-      <div className="w-full bg-surface backdrop-blur-md rounded-t-2xl p-6 max-h-96 overflow-y-auto">
+      <div className="w-full glass-overlay rounded-t-2xl p-6 max-h-96 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">Método de Pago</h2>
           <button
