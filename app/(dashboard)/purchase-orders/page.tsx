@@ -37,6 +37,9 @@ export default async function PurchaseOrdersPage() {
                 Proveedor
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
+                Sucursal
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
                 Estado
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">
@@ -55,6 +58,9 @@ export default async function PurchaseOrdersPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {order.supplier.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
+                  {order.branch?.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <span

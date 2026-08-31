@@ -5,12 +5,21 @@ const prisma = new PrismaClient()
 
 async function main() {
   // Limpiar datos previos
+  await prisma.userBranch.deleteMany()
   await prisma.user.deleteMany()
   await prisma.category.deleteMany()
+  await prisma.productStock.deleteMany()
   await prisma.product.deleteMany()
   await prisma.storeSettings.deleteMany()
+  await prisma.branch.deleteMany()
 
   console.log('🧹 Base de datos limpiada')
+
+  // Crear sucursal principal
+  const mainBranch = await prisma.branch.create({
+    data: { name: 'Sucursal Principal' },
+  })
+  console.log(`✅ Sucursal creada: ${mainBranch.name}`)
 
   // Crear admin user
   const adminPassword = await bcrypt.hash('admin123', 10)
@@ -21,6 +30,7 @@ async function main() {
       passwordHash: adminPassword,
       role: 'ADMIN',
       active: true,
+      defaultBranchId: mainBranch.id,
     },
   })
   console.log(`✅ Admin creado: ${admin.email}`)
@@ -34,6 +44,8 @@ async function main() {
       passwordHash: cashierPassword,
       role: 'CASHIER',
       active: true,
+      defaultBranchId: mainBranch.id,
+      branches: { create: [{ branchId: mainBranch.id }] },
     },
   })
   console.log(`✅ Cajero creado: ${cashier.email}`)
@@ -98,15 +110,17 @@ async function main() {
     },
   ]
 
-  for (const product of products) {
-    await prisma.product.create({
+  for (const { stockQty, ...product } of products) {
+    const created = await prisma.product.create({
       data: {
         ...product,
         costPrice: product.costPrice.toString(),
         salePrice: product.salePrice.toString(),
-        stockQty: product.stockQty.toString(),
         minStockAlert: product.minStockAlert.toString(),
       },
+    })
+    await prisma.productStock.create({
+      data: { productId: created.id, branchId: mainBranch.id, qty: stockQty.toString() },
     })
   }
   console.log(`✅ Productos creados: ${products.length}`)

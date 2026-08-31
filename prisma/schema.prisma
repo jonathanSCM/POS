@@ -13,7 +13,8 @@ datasource db {
 // Valid values:
 // Role: ADMIN, MANAGER, CASHIER
 // UnitType: UNIT, KG, LITER, BOX
-// StockMovementType: PURCHASE_IN, SALE_OUT, RETURN_IN, ADJUSTMENT_IN, ADJUSTMENT_OUT, VOID_RESTOCK
+// StockMovementType: PURCHASE_IN, SALE_OUT, RETURN_IN, ADJUSTMENT_IN, ADJUSTMENT_OUT, VOID_RESTOCK, TRANSFER_OUT, TRANSFER_IN
+// StockTransferStatus: PENDING, IN_TRANSIT, RECEIVED, CANCELLED
 // PurchaseOrderStatus: DRAFT, RECEIVED, CANCELLED
 // PurchaseOrder.paymentStatus: PENDING, PARTIAL, PAID
 // SaleStatus: HELD, COMPLETED, VOIDED, RETURNED, PARTIALLY_RETURNED
@@ -37,6 +38,13 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Sucursal preseleccionada al iniciar sesion (para ADMIN es solo un valor
+  // inicial comodo; para MANAGER/CASHIER sin acceso a varias sucursales
+  // suele coincidir con su unica sucursal asignada en UserBranch).
+  defaultBranchId String?
+  defaultBranch   Branch?  @relation(fields: [defaultBranchId], references: [id])
+  branches        UserBranch[]
+
   salesAsCashier      Sale[]                @relation("SaleCashier")
   voidedSales         Sale[]                @relation("SaleVoidedBy")
   stockMovements      StockMovement[]
@@ -47,8 +55,50 @@ model User {
   returnsProcessed    Return[]
   customerPayments    CustomerPayment[]
   supplierPayments    SupplierPayment[]
+  transfersRequested  StockTransfer[]       @relation("TransferRequestedBy")
+  transfersReceived   StockTransfer[]       @relation("TransferReceivedBy")
 
   @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// SUCURSALES (BRANCHES)
+// ─────────────────────────────────────────────
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usersDefault     User[]
+  userBranches     UserBranch[]
+  productStocks    ProductStock[]
+  batches          ProductBatch[]
+  stockMovements   StockMovement[]
+  sales            Sale[]
+  registerSessions CashRegisterSession[]
+  purchaseOrders   PurchaseOrder[]
+  transfersFrom    StockTransfer[]       @relation("TransferFrom")
+  transfersTo      StockTransfer[]       @relation("TransferTo")
+
+  @@map("branches")
+}
+
+// Acceso de un usuario a una sucursal. Los ADMIN no necesitan filas aca: se
+// consideran con acceso implicito a todas las sucursales activas.
+model UserBranch {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, branchId])
+  @@map("user_branches")
 }
 
 // ─────────────────────────────────────────────
@@ -88,9 +138,8 @@ model Product {
   description      String?  
   categoryId       String?
   category         Category? @relation(fields: [categoryId], references: [id])
-  costPrice        Decimal  
-  salePrice        Decimal  
-  stockQty         Decimal   @default(0)
+  costPrice        Decimal
+  salePrice        Decimal
   minStockAlert    Decimal   @default(0)
   unitType         String @default("UNIT")
   imageUrl         String?
@@ -103,19 +152,40 @@ model Product {
   batches             ProductBatch[]
   purchaseOrderLines  PurchaseOrderLine[]
   returnLines         ReturnLine[]
+  stocks              ProductStock[]
+  transferLines       StockTransferLine[]
 
   @@index([categoryId])
   @@index([name])
   @@map("products")
 }
 
+// Cantidad en stock de un producto en una sucursal puntual. Una sucursal
+// sin fila para un producto se interpreta como stock 0 (no hace falta
+// precrear una fila por cada producto al dar de alta una sucursal nueva).
+model ProductStock {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  qty       Decimal  @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, branchId])
+  @@index([branchId])
+  @@map("product_stocks")
+}
+
 model ProductBatch {
   id               String    @id @default(cuid())
   productId        String
   product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  batchNumber      String    
-  quantity         Decimal   
-  qtyRemaining     Decimal   
+  branchId         String
+  branch           Branch    @relation(fields: [branchId], references: [id])
+  batchNumber      String
+  quantity         Decimal
+  qtyRemaining     Decimal
   expiryDate       DateTime?
   receivedDate     DateTime  @default(now())
   supplierId       String?
@@ -126,9 +196,10 @@ model ProductBatch {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  @@unique([productId, batchNumber])
+  @@unique([productId, branchId, batchNumber])
   @@index([expiryDate])
   @@index([productId])
+  @@index([branchId])
   @@map("product_batches")
 }
 
@@ -136,6 +207,8 @@ model StockMovement {
   id               String            @id @default(cuid())
   productId        String
   product          Product           @relation(fields: [productId], references: [id])
+  branchId         String
+  branch           Branch            @relation(fields: [branchId], references: [id])
   batchId          String?
   batch            ProductBatch?     @relation(fields: [batchId], references: [id])
   type             String
@@ -155,6 +228,7 @@ model StockMovement {
 
   @@index([productId])
   @@index([createdAt])
+  @@index([branchId])
   @@map("stock_movements")
 }
 
@@ -163,6 +237,8 @@ model PurchaseOrder {
   code        String              @unique
   supplierId  String
   supplier    Supplier            @relation(fields: [supplierId], references: [id])
+  branchId    String
+  branch      Branch              @relation(fields: [branchId], references: [id])
   status      String @default("DRAFT")
   notes       String?
   createdById String
@@ -273,6 +349,8 @@ model Sale {
   customerName      String?
   cashierId         String
   cashier           User        @relation("SaleCashier", fields: [cashierId], references: [id])
+  branchId          String
+  branch            Branch      @relation(fields: [branchId], references: [id])
   registerSessionId String?
   registerSession   CashRegisterSession? @relation(fields: [registerSessionId], references: [id])
 
@@ -312,6 +390,7 @@ model Sale {
   @@index([createdAt])
   @@index([customerId])
   @@index([cashierId])
+  @@index([branchId])
   @@map("sales")
 }
 
@@ -394,6 +473,8 @@ model CashRegisterSession {
   code            String                 @unique
   openedById      String
   openedBy        User                   @relation(fields: [openedById], references: [id])
+  branchId        String
+  branch          Branch                 @relation(fields: [branchId], references: [id])
   status          String  @default("OPEN")
 
   startingCash    Decimal                
@@ -408,6 +489,7 @@ model CashRegisterSession {
   sales           Sale[]
   cashMovements   CashMovement[]
 
+  @@index([branchId])
   @@map("cash_register_sessions")
 }
 
@@ -503,4 +585,50 @@ model WhatsAppOrderLine {
 
   @@index([orderId])
   @@map("whatsapp_order_lines")
+}
+
+// ─────────────────────────────────────────────
+// TRANSFERENCIAS DE INVENTARIO ENTRE SUCURSALES
+// ─────────────────────────────────────────────
+// Flujo: PENDING (creada, no toca stock) -> IN_TRANSIT (se envio: descuenta
+// stock de fromBranch, crea StockMovement TRANSFER_OUT ahi) -> RECEIVED (se
+// recibio: suma stock a toBranch, crea StockMovement TRANSFER_IN ahi).
+// CANCELLED solo es valido antes de enviar (todavia PENDING).
+
+model StockTransfer {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  fromBranchId  String
+  fromBranch    Branch    @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranchId    String
+  toBranch      Branch    @relation("TransferTo", fields: [toBranchId], references: [id])
+  status        String    @default("PENDING")
+  requestedById String
+  requestedBy   User      @relation("TransferRequestedBy", fields: [requestedById], references: [id])
+  receivedById  String?
+  receivedBy    User?     @relation("TransferReceivedBy", fields: [receivedById], references: [id])
+  notes         String?
+  createdAt     DateTime  @default(now())
+  sentAt        DateTime?
+  receivedAt    DateTime?
+
+  lines StockTransferLine[]
+
+  @@index([fromBranchId])
+  @@index([toBranchId])
+  @@index([status])
+  @@map("stock_transfers")
+}
+
+model StockTransferLine {
+  id          String        @id @default(cuid())
+  transferId  String
+  transfer    StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id])
+  productName String
+  quantity    Decimal
+
+  @@index([transferId])
+  @@map("stock_transfer_lines")
 }

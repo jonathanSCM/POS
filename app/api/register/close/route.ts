@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
+import { getActiveBranchId } from "@/lib/branch-context"
 import { NextResponse } from "next/server"
 import Decimal from "decimal.js"
 
@@ -12,10 +13,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const branchId = await getActiveBranchId()
     const { actualCash } = await request.json()
 
     const openSession = await prisma.cashRegisterSession.findFirst({
-      where: { status: "OPEN" },
+      where: { status: "OPEN", branchId },
       orderBy: { openedAt: "desc" },
     })
 

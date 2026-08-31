@@ -1,14 +1,18 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import { formatDateTime } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
 export default async function CashSessionsPage() {
   const currency = await getCurrencySymbol()
+  const branchFilter = await getActiveBranchFilter()
+  const showBranchColumn = branchFilter === ALL_BRANCHES
 
   const sessions = await prisma.cashRegisterSession.findMany({
-    include: { openedBy: { select: { name: true } } },
+    where: branchFilter === ALL_BRANCHES ? undefined : { branchId: branchFilter },
+    include: { openedBy: { select: { name: true } }, branch: { select: { name: true } } },
     orderBy: { openedAt: "desc" },
     take: 100,
   })
@@ -30,6 +34,7 @@ export default async function CashSessionsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-white/5 border-b border-border">
+                {showBranchColumn && <th className="px-4 py-3 text-left font-semibold text-text">Sucursal</th>}
                 <th className="px-4 py-3 text-left font-semibold text-text">Cajero</th>
                 <th className="px-4 py-3 text-left font-semibold text-text">Entrada</th>
                 <th className="px-4 py-3 text-left font-semibold text-text">Salida</th>
@@ -44,6 +49,7 @@ export default async function CashSessionsPage() {
                 const discrepancy = s.discrepancy ? new Decimal(s.discrepancy) : null
                 return (
                   <tr key={s.id} className="border-b border-border hover:bg-white/5 transition">
+                    {showBranchColumn && <td className="px-4 py-3 text-muted">{s.branch.name}</td>}
                     <td className="px-4 py-3 text-text font-medium">{s.openedBy.name}</td>
                     <td className="px-4 py-3 text-muted whitespace-nowrap">{formatDateTime(s.openedAt)}</td>
                     <td className="px-4 py-3 text-muted whitespace-nowrap">

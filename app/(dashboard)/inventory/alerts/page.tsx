@@ -4,6 +4,7 @@ import Link from "next/link"
 import { formatDate } from "@/lib/dates"
 import { estimateReorder, needsReorderSoon } from "@/lib/reorder"
 import { formatDateOnly } from "@/lib/dates"
+import { getActiveBranchId } from "@/lib/branch-context"
 import Decimal from "decimal.js"
 
 const REORDER_PERIOD_DAYS = 30
@@ -12,18 +13,9 @@ const STALE_PERIOD_DAYS = 60
 const REVENUE_STATUSES = ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED"] as const
 
 export default async function AlertsPage() {
+  const branchId = await getActiveBranchId()
   const nearExpiry = await getBatchesNearExpiry(30)
   const expired = await getExpiredBatches()
-
-  // Productos bajo stock
-  const lowStockProducts = await prisma.product.findMany({
-    where: {
-      active: true,
-      stockQty: {
-        lte: prisma.product.fields.minStockAlert,
-      },
-    },
-  })
 
   // Alertas inteligentes: cuanto se vende por dia en promedio (ultimos 30
   // dias) vs. el stock actual, para estimar cuantos dias quedan al ritmo
@@ -31,19 +23,33 @@ export default async function AlertsPage() {
   const periodStart = new Date()
   periodStart.setDate(periodStart.getDate() - REORDER_PERIOD_DAYS)
 
-  const [salesInPeriod, allActiveProducts] = await Promise.all([
+  const [salesInPeriod, activeProductsRaw] = await Promise.all([
     prisma.saleLine.groupBy({
       by: ["productId"],
       where: {
         sale: {
           status: { in: ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED"] },
           createdAt: { gte: periodStart },
+          branchId,
         },
       },
       _sum: { quantity: true },
     }),
-    prisma.product.findMany({ where: { active: true } }),
+    prisma.product.findMany({
+      where: { active: true },
+      include: { stocks: { where: { branchId } } },
+    }),
   ])
+
+  // El stock que se usa en toda esta pagina es siempre el de la sucursal
+  // activa (una fila inexistente en ProductStock es 0).
+  const allActiveProducts = activeProductsRaw.map((p) => ({
+    ...p,
+    stockQty: p.stocks[0]?.qty ?? new Decimal(0),
+  }))
+
+  // Productos bajo stock (en esta sucursal)
+  const lowStockProducts = allActiveProducts.filter((p) => p.stockQty.lte(p.minStockAlert))
 
   const soldByProduct = new Map(salesInPeriod.map((s) => [s.productId, s._sum.quantity || new Decimal(0)]))
 
@@ -68,7 +74,7 @@ export default async function AlertsPage() {
   const recentlySoldIds = new Set(
     (
       await prisma.saleLine.findMany({
-        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: staleCutoff } } },
+        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: staleCutoff }, branchId } },
         select: { productId: true },
         distinct: ["productId"],
       })
@@ -82,7 +88,7 @@ export default async function AlertsPage() {
       ? await prisma.saleLine.findMany({
           where: {
             productId: { in: staleProducts.map((p) => p.id) },
-            sale: { status: { in: [...REVENUE_STATUSES] } },
+            sale: { status: { in: [...REVENUE_STATUSES] }, branchId },
           },
           select: { productId: true, sale: { select: { createdAt: true } } },
         })

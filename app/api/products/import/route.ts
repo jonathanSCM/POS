@@ -3,12 +3,14 @@ import { requireRole } from "@/lib/authz"
 import { parseCsvToObjects } from "@/lib/csv"
 import { productSchema } from "@/lib/validations"
 import { Prisma } from "@prisma/client"
+import { getActiveBranchId } from "@/lib/branch-context"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   const { error, status } = await requireRole(["ADMIN", "MANAGER"])
   if (error) return NextResponse.json({ error }, { status })
 
+  const branchId = await getActiveBranchId()
   const text = await request.text()
   if (!text.trim()) {
     return NextResponse.json({ error: "Archivo vacío" }, { status: 400 })
@@ -51,6 +53,9 @@ export async function POST(request: Request) {
       })
 
       const existing = await prisma.product.findUnique({ where: { sku: validated.sku } })
+      // El stock del CSV (si viene) se aplica a la sucursal activa de quien
+      // importa -- el resto del catalogo (nombre/precio/etc.) es compartido.
+      const stockQty = row.stockQty !== undefined && row.stockQty !== "" ? Number(row.stockQty) : null
 
       if (existing) {
         await prisma.product.update({
@@ -62,18 +67,28 @@ export async function POST(request: Request) {
             minStockAlert: new Prisma.Decimal(validated.minStockAlert),
           },
         })
+        if (stockQty !== null && Number.isFinite(stockQty)) {
+          await prisma.productStock.upsert({
+            where: { productId_branchId: { productId: existing.id, branchId } },
+            create: { productId: existing.id, branchId, qty: new Prisma.Decimal(stockQty) },
+            update: { qty: new Prisma.Decimal(stockQty) },
+          })
+        }
         updated++
       } else {
-        const stockQty = row.stockQty ? Number(row.stockQty) : 0
-        await prisma.product.create({
+        const newProduct = await prisma.product.create({
           data: {
             ...validated,
             costPrice: new Prisma.Decimal(validated.costPrice),
             salePrice: new Prisma.Decimal(validated.salePrice),
             minStockAlert: new Prisma.Decimal(validated.minStockAlert),
-            stockQty: new Prisma.Decimal(Number.isFinite(stockQty) ? stockQty : 0),
           },
         })
+        if (stockQty !== null && Number.isFinite(stockQty) && stockQty !== 0) {
+          await prisma.productStock.create({
+            data: { productId: newProduct.id, branchId, qty: new Prisma.Decimal(stockQty) },
+          })
+        }
         created++
       }
     } catch (err: any) {

@@ -3,27 +3,36 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
+interface Branch {
+  id: string
+  name: string
+}
+
 interface User {
   id: string
   email: string
   name: string
   role: string
   active: boolean
+  branchIds?: string[]
+  defaultBranchId?: string | null
 }
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
-  const [newUser, setNewUser] = useState({ email: "", name: "", password: "", role: "CASHIER" })
+  const [branches, setBranches] = useState<Branch[]>([])
+  const [newUser, setNewUser] = useState({ email: "", name: "", password: "", role: "CASHIER", branchIds: [] as string[] })
   const [loading, setLoading] = useState(false)
   const [createError, setCreateError] = useState("")
 
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: "", email: "", role: "CASHIER", password: "" })
+  const [editForm, setEditForm] = useState({ name: "", email: "", role: "CASHIER", password: "", branchIds: [] as string[] })
   const [editError, setEditError] = useState("")
   const [editLoading, setEditLoading] = useState(false)
 
   useEffect(() => {
     loadUsers()
+    loadBranches()
   }, [])
 
   const loadUsers = async () => {
@@ -37,6 +46,20 @@ export default function UsersPage() {
       console.error("Error loading users:", error)
     }
   }
+
+  const loadBranches = async () => {
+    try {
+      const response = await fetch("/api/branches")
+      if (response.ok) {
+        setBranches(await response.json())
+      }
+    } catch (error) {
+      console.error("Error loading branches:", error)
+    }
+  }
+
+  const toggleBranch = (ids: string[], branchId: string) =>
+    ids.includes(branchId) ? ids.filter((id) => id !== branchId) : [...ids, branchId]
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +75,7 @@ export default function UsersPage() {
 
       const data = await response.json()
       if (response.ok) {
-        setNewUser({ email: "", name: "", password: "", role: "CASHIER" })
+        setNewUser({ email: "", name: "", password: "", role: "CASHIER", branchIds: [] })
         await loadUsers()
       } else {
         setCreateError(data.error || "No se pudo crear el usuario")
@@ -82,7 +105,7 @@ export default function UsersPage() {
 
   const startEdit = (user: User) => {
     setEditingId(user.id)
-    setEditForm({ name: user.name, email: user.email, role: user.role, password: "" })
+    setEditForm({ name: user.name, email: user.email, role: user.role, password: "", branchIds: user.branchIds || [] })
     setEditError("")
   }
 
@@ -99,6 +122,7 @@ export default function UsersPage() {
         name: editForm.name,
         email: editForm.email,
         role: editForm.role,
+        branchIds: editForm.branchIds,
       }
       if (editForm.password) body.password = editForm.password
 
@@ -194,6 +218,24 @@ export default function UsersPage() {
                 <option value="MANAGER">Gerente</option>
                 <option value="CASHIER">Cajero</option>
               </select>
+              {newUser.role !== "ADMIN" && (
+                <div>
+                  <p className="text-sm font-medium text-muted mb-2">Sucursales con acceso</p>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {branches.map((b) => (
+                      <label key={b.id} className="flex items-center gap-2 text-sm text-text">
+                        <input
+                          type="checkbox"
+                          checked={newUser.branchIds.includes(b.id)}
+                          onChange={() => setNewUser({ ...newUser, branchIds: toggleBranch(newUser.branchIds, b.id) })}
+                        />
+                        {b.name}
+                      </label>
+                    ))}
+                    {branches.length === 0 && <p className="text-xs text-muted">No hay sucursales creadas todavía.</p>}
+                  </div>
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={loading}
@@ -240,6 +282,23 @@ export default function UsersPage() {
                         <option value="MANAGER">Gerente</option>
                         <option value="CASHIER">Cajero</option>
                       </select>
+                      {editForm.role !== "ADMIN" && (
+                        <div>
+                          <p className="text-xs font-medium text-muted mb-1">Sucursales con acceso</p>
+                          <div className="space-y-1 max-h-28 overflow-y-auto">
+                            {branches.map((b) => (
+                              <label key={b.id} className="flex items-center gap-2 text-xs text-text">
+                                <input
+                                  type="checkbox"
+                                  checked={editForm.branchIds.includes(b.id)}
+                                  onChange={() => setEditForm({ ...editForm, branchIds: toggleBranch(editForm.branchIds, b.id) })}
+                                />
+                                {b.name}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <input
                         type="password"
                         placeholder="Nueva contraseña (dejar en blanco para no cambiarla)"
@@ -279,6 +338,14 @@ export default function UsersPage() {
                         <p className="text-xs text-muted mt-1">
                           {user.role === "ADMIN" ? "👑 Admin" : user.role === "MANAGER" ? "👔 Gerente" : "👨‍💼 Cajero"}
                         </p>
+                        {user.role !== "ADMIN" && (
+                          <p className="text-xs text-muted mt-1">
+                            📍 {(user.branchIds || [])
+                              .map((id) => branches.find((b) => b.id === id)?.name)
+                              .filter(Boolean)
+                              .join(", ") || "sin sucursal asignada"}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <button

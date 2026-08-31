@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import { formatDateTime } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -13,11 +14,17 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 
 export default async function SalesPage() {
   const currency = await getCurrencySymbol()
+  const branchFilter = await getActiveBranchFilter()
+  const showBranchColumn = branchFilter === ALL_BRANCHES
   const sales = await prisma.sale.findMany({
-    where: { status: { in: ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED", "VOIDED"] } },
+    where: {
+      status: { in: ["COMPLETED", "PARTIALLY_RETURNED", "RETURNED", "VOIDED"] },
+      ...(branchFilter !== ALL_BRANCHES ? { branchId: branchFilter } : {}),
+    },
     include: {
       lines: true,
       payments: true,
+      branch: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -69,6 +76,7 @@ export default async function SalesPage() {
               <thead>
                 <tr className="bg-white/10 border-b-2 border-border">
                   <th className="px-6 py-3 text-left text-sm font-bold text-text">Código</th>
+                  {showBranchColumn && <th className="px-6 py-3 text-left text-sm font-bold text-text">Sucursal</th>}
                   <th className="px-6 py-3 text-left text-sm font-bold text-text">Cliente</th>
                   <th className="px-6 py-3 text-center text-sm font-bold text-text">Artículos</th>
                   <th className="px-6 py-3 text-center text-sm font-bold text-text">Monto</th>
@@ -87,6 +95,7 @@ export default async function SalesPage() {
                     }`}
                   >
                     <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{sale.code}</td>
+                    {showBranchColumn && <td className="px-6 py-4 text-sm text-muted">{sale.branch.name}</td>}
                     <td className="px-6 py-4 text-sm text-text">
                       {sale.customerName || "Cliente Anónimo"}
                     </td>

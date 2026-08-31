@@ -2,8 +2,10 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SignOutButton from "@/components/shared/SignOutButton"
+import BranchSwitcher from "@/components/shared/BranchSwitcher"
 import { CurrencyProvider } from "@/components/shared/CurrencyProvider"
 import { getCurrencySymbol } from "@/lib/settings"
+import { getUserBranches, getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +20,9 @@ export default async function DashboardLayout({
 
   const user = session.user as any
   const currencySymbol = await getCurrencySymbol()
+  const branches = await getUserBranches()
+  const activeBranchFilter = await getActiveBranchFilter()
+  const showBranchSwitcher = user.role === "ADMIN" || branches.length > 1
 
   return (
     <CurrencyProvider symbol={currencySymbol}>
@@ -34,7 +39,16 @@ export default async function DashboardLayout({
               <p className="text-xs text-muted">{user.name} • {user.role}</p>
             </div>
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-3">
+            {showBranchSwitcher && (
+              <BranchSwitcher
+                branches={branches}
+                activeBranchId={activeBranchFilter === ALL_BRANCHES ? "ALL" : activeBranchFilter}
+                isAdmin={user.role === "ADMIN"}
+              />
+            )}
+            <SignOutButton />
+          </div>
         </div>
       </div>
 

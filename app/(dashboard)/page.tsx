@@ -6,6 +6,7 @@ import { getAccountsReceivableTotal } from "@/app/actions/customers"
 import { getAccountsPayableTotal } from "@/app/actions/suppliers"
 import { calculateLinesProfit } from "@/lib/profit"
 import { startOfBoliviaDay, endOfBoliviaDay } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -111,6 +112,14 @@ export default async function DashboardPage() {
       roles: ["ADMIN"],
     },
     {
+      id: "branches",
+      title: "Sucursales",
+      description: "Gestionar sucursales y transferencias",
+      icon: "🏢",
+      href: "/branches",
+      roles: ["ADMIN"],
+    },
+    {
       id: "settings",
       title: "Configuración",
       description: "Ajustes del sistema",
@@ -131,17 +140,36 @@ export default async function DashboardPage() {
   const filteredModules = modules.filter((m) => m.roles.includes(user.role))
 
   // ── Datos reales para "Resumen Rápido" (antes hardcodeados) ──
+  // Todo se filtra por la sucursal activa; ADMIN puede estar viendo "todas"
+  // (consolidado), en cuyo caso se omite el filtro de sucursal.
+  const branchFilter = await getActiveBranchFilter()
+  const branchWhere = branchFilter === ALL_BRANCHES ? {} : { branchId: branchFilter }
+
   const now = new Date()
   const todayStart = startOfBoliviaDay(now)
   const yesterday = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000)
   const yesterdayEnd = endOfBoliviaDay(yesterday)
 
-  const [productCount, lowStockCount, salesToday, salesYesterday] = await Promise.all([
+  const lowStockQuery =
+    branchFilter === ALL_BRANCHES
+      ? prisma.$queryRaw<{ count: bigint }[]>`
+          SELECT COUNT(*) as count FROM products p
+          WHERE p.active = true
+          AND COALESCE((SELECT SUM(qty) FROM product_stocks ps WHERE ps."productId" = p.id), 0) <= p."minStockAlert"
+        `
+      : prisma.$queryRaw<{ count: bigint }[]>`
+          SELECT COUNT(*) as count FROM products p
+          WHERE p.active = true
+          AND COALESCE((SELECT qty FROM product_stocks ps WHERE ps."productId" = p.id AND ps."branchId" = ${branchFilter}), 0) <= p."minStockAlert"
+        `
+
+  const [productCount, lowStockRows, salesToday, salesYesterday] = await Promise.all([
     prisma.product.count({ where: { active: true } }),
-    prisma.product.count({ where: { active: true, stockQty: { lte: prisma.product.fields.minStockAlert } } }),
-    prisma.sale.findMany({ where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: todayStart, lte: now } }, select: { total: true } }),
-    prisma.sale.findMany({ where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: yesterday, lte: yesterdayEnd } }, select: { total: true } }),
+    lowStockQuery,
+    prisma.sale.findMany({ where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: todayStart, lte: now }, ...branchWhere }, select: { total: true } }),
+    prisma.sale.findMany({ where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: yesterday, lte: yesterdayEnd }, ...branchWhere }, select: { total: true } }),
   ])
+  const lowStockCount = Number(lowStockRows[0]?.count ?? 0)
 
   const totalToday = salesToday.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
   const totalYesterday = salesYesterday.reduce((sum, s) => sum.plus(new Decimal(s.total)), new Decimal(0))
@@ -171,25 +199,25 @@ export default async function DashboardPage() {
 
     const [salesThisMonth, salesPrevMonth, receivable, payable, topProductsRaw, paymentsRaw] = await Promise.all([
       prisma.sale.findMany({
-        where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now } },
+        where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now }, ...branchWhere },
         include: { lines: true },
       }),
       prisma.sale.findMany({
-        where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: prevMonthStart, lte: prevMonthEnd } },
+        where: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: prevMonthStart, lte: prevMonthEnd }, ...branchWhere },
         select: { total: true },
       }),
       getAccountsReceivableTotal(),
       getAccountsPayableTotal(),
       prisma.saleLine.groupBy({
         by: ["productName"],
-        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now } } },
+        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now }, ...branchWhere } },
         _sum: { quantity: true },
         orderBy: { _sum: { quantity: "desc" } },
         take: 3,
       }),
       prisma.payment.groupBy({
         by: ["method"],
-        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now } } },
+        where: { sale: { status: { in: [...REVENUE_STATUSES] }, createdAt: { gte: monthStart, lte: now }, ...branchWhere } },
         _sum: { amount: true },
       }),
     ])

@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/authz"
 import { toCsv } from "@/lib/csv"
+import { getActiveBranchId } from "@/lib/branch-context"
 import { NextResponse } from "next/server"
 
 export async function GET() {
   const { error, status } = await requireRole(["ADMIN", "MANAGER"])
   if (error) return NextResponse.json({ error }, { status })
 
+  const branchId = await getActiveBranchId()
   const products = await prisma.product.findMany({
     where: { active: true },
-    include: { category: true },
+    include: { category: true, stocks: { where: { branchId } } },
     orderBy: { name: "asc" },
   })
 
@@ -34,7 +36,7 @@ export async function GET() {
     p.category?.name || "",
     p.costPrice.toString(),
     p.salePrice.toString(),
-    p.stockQty.toString(),
+    (p.stocks[0]?.qty ?? 0).toString(),
     p.minStockAlert.toString(),
     p.unitType,
   ])

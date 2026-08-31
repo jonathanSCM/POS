@@ -3,6 +3,7 @@ import { getCurrencySymbol } from "@/lib/settings"
 import Link from "next/link"
 import Decimal from "decimal.js"
 import { startOfBoliviaDay, endOfBoliviaDay, formatDate } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 
 function getDateRange(preset: string | undefined, from: string | undefined, to: string | undefined) {
   const now = new Date()
@@ -35,9 +36,15 @@ export default async function ContadorReportPage({
   const preset = params.preset || "month"
   const { from, to } = getDateRange(preset, params.from, params.to)
   const currency = await getCurrencySymbol()
+  const branchFilter = await getActiveBranchFilter()
 
   const sales = await prisma.sale.findMany({
-    where: { status: "COMPLETED", isInvoiced: true, createdAt: { gte: from, lte: to } },
+    where: {
+      status: "COMPLETED",
+      isInvoiced: true,
+      createdAt: { gte: from, lte: to },
+      ...(branchFilter !== ALL_BRANCHES ? { branchId: branchFilter } : {}),
+    },
     orderBy: { invoiceNumber: "asc" },
   })
 

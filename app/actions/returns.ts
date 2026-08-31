@@ -54,15 +54,22 @@ export async function voidSale(saleId: string, reason: string) {
       throw new Error(`No se puede anular: la venta ya está en estado ${sale.status}`)
     }
 
+    const branchId = sale.branchId
     for (const line of sale.lines) {
-      const product = await tx.product.findUnique({ where: { id: line.productId } })
-      if (!product) continue
-      const qtyBefore = product.stockQty
+      const productStock = await tx.productStock.findUnique({
+        where: { productId_branchId: { productId: line.productId, branchId } },
+      })
+      const qtyBefore = productStock?.qty ?? new Prisma.Decimal(0)
       const qtyAfter = qtyBefore.plus(line.quantity)
-      await tx.product.update({ where: { id: line.productId }, data: { stockQty: qtyAfter } })
+      await tx.productStock.upsert({
+        where: { productId_branchId: { productId: line.productId, branchId } },
+        create: { productId: line.productId, branchId, qty: qtyAfter },
+        update: { qty: qtyAfter },
+      })
       await tx.stockMovement.create({
         data: {
           productId: line.productId,
+          branchId,
           type: "VOID_RESTOCK",
           quantity: line.quantity,
           qtyBefore,
@@ -76,7 +83,7 @@ export async function voidSale(saleId: string, reason: string) {
 
     // Revertir efecto en caja (solo si esa sesion sigue abierta -- no se
     // toca una caja ya cerrada y reconciliada) o en el saldo del cliente.
-    const cashPayment = sale.payments.find((p) => p.method === "CASH")
+    const cashPayment = sale.payments.find((p: any) => p.method === "CASH")
     if (cashPayment && sale.registerSessionId) {
       const regSession = await tx.cashRegisterSession.findUnique({ where: { id: sale.registerSessionId } })
       if (regSession?.status === "OPEN") {
@@ -208,15 +215,22 @@ export async function createReturn(data: {
       include: { lines: true },
     })
 
+    const branchId = sale.branchId
     for (const l of lineData) {
-      const product = await tx.product.findUnique({ where: { id: l.productId } })
-      if (!product) continue
-      const qtyBefore = product.stockQty
+      const productStock = await tx.productStock.findUnique({
+        where: { productId_branchId: { productId: l.productId, branchId } },
+      })
+      const qtyBefore = productStock?.qty ?? new Prisma.Decimal(0)
       const qtyAfter = qtyBefore.plus(l.quantity.toString())
-      await tx.product.update({ where: { id: l.productId }, data: { stockQty: qtyAfter } })
+      await tx.productStock.upsert({
+        where: { productId_branchId: { productId: l.productId, branchId } },
+        create: { productId: l.productId, branchId, qty: qtyAfter },
+        update: { qty: qtyAfter },
+      })
       await tx.stockMovement.create({
         data: {
           productId: l.productId,
+          branchId,
           type: "RETURN_IN",
           quantity: new Prisma.Decimal(l.quantity.toString()),
           qtyBefore,
@@ -231,7 +245,7 @@ export async function createReturn(data: {
 
     if (data.refundMethod === "CASH") {
       const openSession = await tx.cashRegisterSession.findFirst({
-        where: { status: "OPEN" },
+        where: { status: "OPEN", branchId },
         orderBy: { openedAt: "desc" },
       })
       if (openSession) {

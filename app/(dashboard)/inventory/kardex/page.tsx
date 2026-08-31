@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { formatDateTime, startOfBoliviaDay, endOfBoliviaDay } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -10,6 +11,8 @@ const TYPE_LABELS: Record<string, string> = {
   ADJUSTMENT_IN: "⚙️ Ajuste (Entrada)",
   ADJUSTMENT_OUT: "⚙️ Ajuste (Salida)",
   VOID_RESTOCK: "🚫 Venta Anulada (Restock)",
+  TRANSFER_OUT: "🔄 Transferencia (Salida)",
+  TRANSFER_IN: "🔄 Transferencia (Entrada)",
 }
 
 function getDateRange(preset: string) {
@@ -37,10 +40,13 @@ export default async function KardexPage({
   const type = params.type || "ALL"
   const q = params.q?.trim() || ""
   const { from, to } = getDateRange(preset)
+  const branchFilter = await getActiveBranchFilter()
+  const showBranchColumn = branchFilter === ALL_BRANCHES
 
   const movements = await prisma.stockMovement.findMany({
     where: {
       createdAt: { gte: from, lte: to },
+      ...(branchFilter !== ALL_BRANCHES ? { branchId: branchFilter } : {}),
       ...(type !== "ALL" ? { type } : {}),
       ...(q
         ? {
@@ -57,6 +63,7 @@ export default async function KardexPage({
       product: { select: { name: true, sku: true, unitType: true } },
       user: { select: { name: true } },
       batch: { select: { batchNumber: true } },
+      branch: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 300,
@@ -136,6 +143,7 @@ export default async function KardexPage({
               <thead>
                 <tr className="bg-white/10 border-b-2 border-border">
                   <th className="px-4 py-3 text-left font-bold text-text">Fecha</th>
+                  {showBranchColumn && <th className="px-4 py-3 text-left font-bold text-text">Sucursal</th>}
                   <th className="px-4 py-3 text-left font-bold text-text">Producto</th>
                   <th className="px-4 py-3 text-left font-bold text-text">Tipo</th>
                   <th className="px-4 py-3 text-center font-bold text-text">Antes</th>
@@ -154,6 +162,7 @@ export default async function KardexPage({
                     }`}
                   >
                     <td className="px-4 py-3 text-muted whitespace-nowrap">{formatDateTime(mov.createdAt)}</td>
+                    {showBranchColumn && <td className="px-4 py-3 text-muted">{mov.branch.name}</td>}
                     <td className="px-4 py-3">
                       <p className="font-medium text-text">{mov.product.name}</p>
                       <p className="text-xs text-muted">{mov.product.sku}</p>

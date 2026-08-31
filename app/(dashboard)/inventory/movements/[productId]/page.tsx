@@ -2,11 +2,13 @@ import { getProducts } from "@/app/actions/products"
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import { formatDateTime } from "@/lib/dates"
+import { getActiveBranchId } from "@/lib/branch-context"
 import Link from "next/link"
 
 async function MovementsList({ productId }: { productId: string }) {
+  const branchId = await getActiveBranchId()
   const movements = await prisma.stockMovement.findMany({
-    where: { productId },
+    where: { productId, branchId },
     orderBy: { createdAt: "desc" },
     include: {
       user: true,
@@ -24,6 +26,8 @@ async function MovementsList({ productId }: { productId: string }) {
     ADJUSTMENT_IN: "Ajuste (Entrada)",
     ADJUSTMENT_OUT: "Ajuste (Salida)",
     VOID_RESTOCK: "Venta Anulada (Restock)",
+    TRANSFER_OUT: "Transferencia (Salida)",
+    TRANSFER_IN: "Transferencia (Entrada)",
   }
 
   if (movements.length === 0) {

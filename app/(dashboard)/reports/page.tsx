@@ -5,6 +5,7 @@ import Decimal from "decimal.js"
 import { SalesTrendChart, PaymentMethodChart } from "@/components/reports/SalesCharts"
 import { calculateLinesProfit, calculateProfitMargin } from "@/lib/profit"
 import { startOfBoliviaDay, endOfBoliviaDay, formatShortDate } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 
 function getDateRange(preset: string | undefined, from: string | undefined, to: string | undefined) {
   const now = new Date()
@@ -40,9 +41,11 @@ export default async function ReportsPage({
   const preset = params.preset || "today"
   const { from, to } = getDateRange(preset, params.from, params.to)
   const currency = await getCurrencySymbol()
+  const branchFilter = await getActiveBranchFilter()
+  const branchWhere = branchFilter === ALL_BRANCHES ? {} : { branchId: branchFilter }
 
   const sales = await prisma.sale.findMany({
-    where: { status: "COMPLETED", createdAt: { gte: from, lte: to } },
+    where: { status: "COMPLETED", createdAt: { gte: from, lte: to }, ...branchWhere },
     include: { lines: true, payments: true },
   })
 
@@ -74,7 +77,7 @@ export default async function ReportsPage({
 
   const topProducts = await prisma.saleLine.groupBy({
     by: ["productName"],
-    where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to } } },
+    where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to }, ...branchWhere } },
     _sum: { quantity: true, lineTotal: true },
     _count: true,
     orderBy: { _sum: { quantity: "desc" } },
@@ -83,7 +86,7 @@ export default async function ReportsPage({
 
   const paymentMethods = await prisma.payment.groupBy({
     by: ["method"],
-    where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to } } },
+    where: { sale: { status: "COMPLETED", createdAt: { gte: from, lte: to }, ...branchWhere } },
     _sum: { amount: true },
     _count: true,
   })

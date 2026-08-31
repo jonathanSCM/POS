@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
+import { getActiveBranchId } from "@/lib/branch-context"
 
 let poCounter = 0
 
@@ -35,6 +36,7 @@ export async function createPurchaseOrder(data: any) {
 
   const user = session.user as any
   const validated = purchaseOrderSchema.parse(data)
+  const branchId = await getActiveBranchId()
 
   const code = await generatePOCode()
 
@@ -47,6 +49,7 @@ export async function createPurchaseOrder(data: any) {
     data: {
       code,
       supplierId: validated.supplierId,
+      branchId,
       createdById: user.id,
       notes: validated.notes,
       dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
@@ -80,38 +83,46 @@ export async function receivePurchaseOrder(id: string) {
 
   if (!po) throw new Error("PO no encontrada")
 
-  // Actualizar productos y crear stock movements
-  const updates = po.lines.map((line) =>
-    prisma.product.findUnique({
-      where: { id: line.productId },
-    })
+  const branchId = po.branchId
+
+  // Traer el stock actual (en la sucursal de la orden) de cada producto
+  const currentStocks = await Promise.all(
+    po.lines.map((line) =>
+      prisma.productStock.findUnique({
+        where: { productId_branchId: { productId: line.productId, branchId } },
+      })
+    )
   )
 
-  const products = await Promise.all(updates)
-
   const productUpdates = po.lines.map((line, idx) => {
-    const product = products[idx]!
-    const newQty = product!.stockQty.plus(line.quantity)
+    const qtyBefore = currentStocks[idx]?.qty ?? new Prisma.Decimal(0)
+    const newQty = qtyBefore.plus(line.quantity)
 
-    return prisma.product.update({
-      where: { id: line.productId },
-      data: {
-        stockQty: newQty,
-        costPrice: line.unitCost,
-      },
+    return prisma.productStock.upsert({
+      where: { productId_branchId: { productId: line.productId, branchId } },
+      create: { productId: line.productId, branchId, qty: newQty },
+      update: { qty: newQty },
     })
   })
 
+  const costUpdates = po.lines.map((line) =>
+    prisma.product.update({
+      where: { id: line.productId },
+      data: { costPrice: line.unitCost },
+    })
+  )
+
   const movements = po.lines.map((line, idx) => {
-    const product = products[idx]!
-    const newQty = product!.stockQty.plus(line.quantity)
+    const qtyBefore = currentStocks[idx]?.qty ?? new Prisma.Decimal(0)
+    const newQty = qtyBefore.plus(line.quantity)
 
     return prisma.stockMovement.create({
       data: {
         productId: line.productId,
+        branchId,
         type: "PURCHASE_IN",
         quantity: line.quantity,
-        qtyBefore: product!.stockQty,
+        qtyBefore,
         qtyAfter: newQty,
         purchaseOrderId: id,
         userId: user.id,
@@ -127,16 +138,22 @@ export async function receivePurchaseOrder(id: string) {
     },
   })
 
-  await prisma.$transaction([...productUpdates, poUpdate, ...movements] as any)
+  await prisma.$transaction([...productUpdates, ...costUpdates, poUpdate, ...movements] as any)
 
   return { success: true }
 }
 
 export async function getPurchaseOrders() {
+  const session = await getServerSession(authOptions)
+  const role = (session?.user as any)?.role
+  const branchId = role === "ADMIN" ? undefined : await getActiveBranchId()
+
   return prisma.purchaseOrder.findMany({
+    where: branchId ? { branchId } : undefined,
     include: {
       supplier: true,
       createdBy: true,
+      branch: true,
       lines: { include: { product: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -149,6 +166,7 @@ export async function getPurchaseOrder(id: string) {
     include: {
       supplier: true,
       createdBy: true,
+      branch: true,
       lines: { include: { product: true } },
     },
   })
@@ -211,7 +229,7 @@ export async function registerSupplierPayment(data: {
 
     if (data.method === "CASH") {
       const openSession = await tx.cashRegisterSession.findFirst({
-        where: { status: "OPEN" },
+        where: { status: "OPEN", branchId: po.branchId },
         orderBy: { openedAt: "desc" },
       })
       if (openSession) {

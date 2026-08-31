@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth"
 import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
 import { randomUUID } from "crypto"
+import { getActiveBranchId } from "@/lib/branch-context"
 
 // Convierte los campos Decimal de una venta (y sus líneas/pagos) a string,
 // para poder devolverla desde una Server Action a un Client Component
@@ -69,32 +70,46 @@ export async function createSale(data: {
       throw new Error("Para vender a crédito hay que identificar al cliente")
     }
 
+    // La sucursal siempre se resuelve del lado del servidor (nunca se
+    // confía en un branchId que mande el cliente), igual que la caja
+    // abierta más abajo: así toda venta queda ligada a la sucursal real en
+    // la que está operando el cajero en este momento.
+    const branchId = await getActiveBranchId()
+
     // Crear venta con transacción
     const sale = await prisma.$transaction(async (tx) => {
       // La sesión de caja abierta se resuelve siempre del lado del servidor
       // (no se confía en un registerSessionId que mande el cliente): así
       // toda venta en efectivo queda ligada a la caja real que está abierta
-      // en este momento, y su monto se suma al efectivo esperado.
+      // en este momento en esta sucursal, y su monto se suma al efectivo
+      // esperado.
       const openSession = await tx.cashRegisterSession.findFirst({
-        where: { status: "OPEN" },
+        where: { status: "OPEN", branchId },
         orderBy: { openedAt: "desc" },
       })
 
-      // Validar stock disponible y traer el precio real de cada producto:
-      // el precio/total nunca se toma del cliente, siempre se recalcula
-      // contra lo que realmente dice la base de datos en este momento.
+      // Validar stock disponible (en la sucursal activa) y traer el precio
+      // real de cada producto: el precio/total nunca se toma del cliente,
+      // siempre se recalcula contra lo que realmente dice la base de datos
+      // en este momento.
       const products = new Map<string, Awaited<ReturnType<typeof tx.product.findUnique>>>()
+      const stocks = new Map<string, Decimal>()
       for (const line of data.lines) {
         const product = await tx.product.findUnique({
           where: { id: line.productId },
         })
         if (!product) throw new Error(`Producto no encontrado: ${line.productId}`)
-        if (product.stockQty.lt(line.quantity)) {
+        const productStock = await tx.productStock.findUnique({
+          where: { productId_branchId: { productId: line.productId, branchId } },
+        })
+        const stockQty = productStock ? new Decimal(productStock.qty.toString()) : new Decimal(0)
+        if (stockQty.lt(line.quantity)) {
           throw new Error(
-            `Stock insuficiente para ${product.name}: disponible ${product.stockQty}`
+            `Stock insuficiente para ${product.name}: disponible ${stockQty}`
           )
         }
         products.set(line.productId, product)
+        stocks.set(line.productId, stockQty)
       }
 
       const saleLines = data.lines.map((line) => {
@@ -130,6 +145,7 @@ export async function createSale(data: {
           customerId: data.customerId || null,
           customerName: data.customerName || null,
           cashierId: data.cashierId,
+          branchId,
           registerSessionId: openSession?.id,
           status: "COMPLETED",
           subtotal: new Prisma.Decimal(subtotal.toString()),
@@ -169,36 +185,35 @@ export async function createSale(data: {
         },
       })
 
-      // Actualizar stock y crear movimientos
+      // Actualizar stock (de la sucursal activa) y crear movimientos
       for (const line of data.lines) {
-        const product = await tx.product.findUnique({
-          where: { id: line.productId },
+        const qtyBefore = stocks.get(line.productId) ?? new Decimal(0)
+        const qtyAfter = qtyBefore.minus(line.quantity)
+
+        await tx.productStock.upsert({
+          where: { productId_branchId: { productId: line.productId, branchId } },
+          create: {
+            productId: line.productId,
+            branchId,
+            qty: new Prisma.Decimal(qtyAfter.toString()),
+          },
+          update: { qty: new Prisma.Decimal(qtyAfter.toString()) },
         })
-        if (product) {
-          const qtyBefore = product.stockQty
-          const qtyAfter = qtyBefore.minus(line.quantity)
 
-          await tx.product.update({
-            where: { id: line.productId },
-            data: {
-              stockQty: qtyAfter,
-            },
-          })
-
-          // Registrar movimiento de stock (negativo para salidas)
-          await tx.stockMovement.create({
-            data: {
-              productId: line.productId,
-              type: "SALE_OUT",
-              quantity: new Prisma.Decimal(new Decimal(line.quantity).negated().toString()),
-              qtyBefore: qtyBefore,
-              qtyAfter: qtyAfter,
-              userId: (session.user as any)?.id as string,
-              saleId: newSale.id,
-              reason: `Venta completada`,
-            },
-          })
-        }
+        // Registrar movimiento de stock (negativo para salidas)
+        await tx.stockMovement.create({
+          data: {
+            productId: line.productId,
+            branchId,
+            type: "SALE_OUT",
+            quantity: new Prisma.Decimal(new Decimal(line.quantity).negated().toString()),
+            qtyBefore: new Prisma.Decimal(qtyBefore.toString()),
+            qtyAfter: new Prisma.Decimal(qtyAfter.toString()),
+            userId: (session.user as any)?.id as string,
+            saleId: newSale.id,
+            reason: `Venta completada`,
+          },
+        })
       }
 
       // Solo el efectivo físico afecta lo que debería haber en la caja al
@@ -257,6 +272,7 @@ export async function holdSale(data: {
     const session = await getServerSession(authOptions)
     if (!session) throw new Error("No autenticado")
 
+    const branchId = await getActiveBranchId()
     const saleCode = `HOLD-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`
 
     const heldSale = await prisma.sale.create({
@@ -265,6 +281,7 @@ export async function holdSale(data: {
         customerId: data.customerId || null,
         customerName: data.customerName || null,
         cashierId: (session.user as any)?.id as string,
+        branchId,
         status: "HELD",
         subtotal: new Decimal(0),
         discountTotal: new Decimal(0),
@@ -304,10 +321,12 @@ export async function getHeldSales() {
     const session = await getServerSession(authOptions)
     if (!session) throw new Error("No autenticado")
 
+    const branchId = await getActiveBranchId()
     const sales = await prisma.sale.findMany({
       where: {
         status: "HELD",
         cashierId: (session.user as any)?.id as string,
+        branchId,
       },
       include: {
         lines: true,
@@ -333,6 +352,7 @@ export async function getSaleById(id: string) {
         lines: true,
         payments: true,
         customer: true,
+        branch: true,
         returns: { include: { lines: true } },
       },
     })

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrencySymbol } from "@/lib/settings"
 import { formatDateTime } from "@/lib/dates"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Link from "next/link"
 import Decimal from "decimal.js"
 
@@ -13,8 +14,10 @@ const TYPE_LABELS: Record<string, { label: string; positive: boolean }> = {
 
 export default async function CashMovementsPage() {
   const currency = await getCurrencySymbol()
+  const branchFilter = await getActiveBranchFilter()
 
   const movements = await prisma.cashMovement.findMany({
+    where: branchFilter === ALL_BRANCHES ? undefined : { session: { branchId: branchFilter } },
     include: {
       session: { select: { code: true, status: true } },
       user: { select: { name: true } },

@@ -37,6 +37,13 @@ export default function InventoryHubPage() {
       icon: "📊",
       href: "/inventory/kardex",
     },
+    {
+      id: "transfers",
+      title: "Transferencias",
+      description: "Mover stock entre sucursales",
+      icon: "🔄",
+      href: "/inventory/transfers",
+    },
   ]
 
   return (

@@ -41,13 +41,40 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       data.passwordHash = await bcrypt.hash(body.password, 10)
     }
 
+    if (typeof body.defaultBranchId === "string" || body.defaultBranchId === null) {
+      data.defaultBranchId = body.defaultBranchId || null
+    }
+
+    const effectiveRole = data.role ?? (await prisma.user.findUnique({ where: { id }, select: { role: true } }))?.role
+    if (Array.isArray(body.branchIds)) {
+      const ids: string[] = body.branchIds
+      if (effectiveRole !== "ADMIN" && ids.length === 0) {
+        return NextResponse.json({ error: "Asigna al menos una sucursal" }, { status: 400 })
+      }
+      await prisma.userBranch.deleteMany({ where: { userId: id } })
+      if (ids.length > 0) {
+        await prisma.userBranch.createMany({
+          data: ids.map((branchId) => ({ userId: id, branchId })),
+          skipDuplicates: true,
+        })
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, role: true, active: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        active: true,
+        defaultBranchId: true,
+        branches: { select: { branchId: true } },
+      },
     })
 
-    return NextResponse.json(user)
+    return NextResponse.json({ ...user, branchIds: user.branches.map((b) => b.branchId), branches: undefined })
   } catch (error: any) {
     if (error?.code === "P2002") {
       return NextResponse.json({ error: "Ya existe un usuario con ese email" }, { status: 409 })

@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { buildWorkbookBuffer } from "@/lib/excel"
+import { getActiveBranchFilter, ALL_BRANCHES } from "@/lib/branch-context"
 import Decimal from "decimal.js"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const from = searchParams.get("from") ? new Date(searchParams.get("from") as string) : new Date(0)
   const to = searchParams.get("to") ? new Date(searchParams.get("to") as string) : new Date()
+  const branchFilter = await getActiveBranchFilter()
 
   const sales = await prisma.sale.findMany({
-    where: { status: "COMPLETED", createdAt: { gte: from, lte: to } },
+    where: {
+      status: "COMPLETED",
+      createdAt: { gte: from, lte: to },
+      ...(branchFilter !== ALL_BRANCHES ? { branchId: branchFilter } : {}),
+    },
     include: { payments: true },
     orderBy: { createdAt: "asc" },
   })
