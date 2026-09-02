@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { requireRole } from "@/lib/authz"
-import { NOTIFICATION_TYPES, getAllPreferences, setTypeEnabled } from "@/lib/notifications/preferences"
+import { NOTIFICATION_TYPES, getGroupedCatalog, getAllPreferences, setTypeEnabled } from "@/lib/notifications/preferences"
 
 export async function GET() {
   const { error, status } = await requireRole(["ADMIN"])
   if (error) return NextResponse.json({ error }, { status })
 
   const preferences = await getAllPreferences()
-  return NextResponse.json({ types: NOTIFICATION_TYPES, preferences })
+  return NextResponse.json({ types: NOTIFICATION_TYPES, groups: getGroupedCatalog(), preferences })
 }
 
 export async function PUT(request: Request) {

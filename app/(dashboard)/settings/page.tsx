@@ -9,15 +9,10 @@ interface Settings {
   taxRatePercent: string
   receiptFooterText: string
   receiptPaperWidth: string
-  notifyPhone: string
-  notifyEmail: string
-  bigSaleThreshold: string
-  bigAdjustmentThreshold: string
-  creditTermDays: string
-  whatsappEnabled: boolean
-  emailEnabled: boolean
-  dailyCheckHour: string
-  weeklyCheckHour: string
+  notifyPhone?: string
+  notifyEmail?: string
+  whatsappEnabled?: boolean
+  emailEnabled?: boolean
 }
 
 export default function SettingsPage() {
@@ -27,22 +22,9 @@ export default function SettingsPage() {
     taxRatePercent: "0",
     receiptFooterText: "",
     receiptPaperWidth: "80mm",
-    notifyPhone: "",
-    notifyEmail: "",
-    bigSaleThreshold: "1000",
-    bigAdjustmentThreshold: "20",
-    creditTermDays: "30",
-    whatsappEnabled: false,
-    emailEnabled: false,
-    dailyCheckHour: "20",
-    weeklyCheckHour: "8",
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
-  const [testMessage, setTestMessage] = useState("")
-  const [testingChannel, setTestingChannel] = useState<string | null>(null)
-  const [testEmailTo, setTestEmailTo] = useState("")
-  const [testPhoneTo, setTestPhoneTo] = useState("")
 
   useEffect(() => {
     loadSettings()
@@ -84,24 +66,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleTestNotification = async (channel: "whatsapp" | "email") => {
-    setTestingChannel(channel)
-    setTestMessage("")
-    try {
-      const to = channel === "email" ? testEmailTo.trim() : testPhoneTo.trim()
-      const response = await fetch("/api/settings/test-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel, to: to || undefined }),
-      })
-      const data = await response.json()
-      setTestMessage(response.ok ? `✅ Enviado a ${to || (channel === "email" ? settings.notifyEmail : settings.notifyPhone)}` : `❌ ${data.error}`)
-    } catch (error) {
-      setTestMessage("❌ Error: " + (error as any).message)
-    } finally {
-      setTestingChannel(null)
-    }
-  }
+  const notifChannelsOn = [settings.whatsappEnabled && "WhatsApp", settings.emailEnabled && "Email"].filter(Boolean)
 
   return (
     <div className="min-h-screen p-8">
@@ -180,169 +145,6 @@ export default function SettingsPage() {
               </select>
             </div>
 
-            <div className="pt-6 border-t border-border">
-              <div className="flex justify-between items-start mb-1">
-                <h2 className="text-xl font-bold text-text">Notificaciones</h2>
-                <Link href="/settings/notifications" className="text-xs text-primary-2 hover:underline whitespace-nowrap">
-                  Elegir qué notificaciones recibir →
-                </Link>
-              </div>
-              <p className="text-sm text-muted mb-4">
-                Avisos automáticos por WhatsApp y email (stock bajo, cierre de caja, cuentas vencidas, etc.).
-                WhatsApp requiere plantillas aprobadas en Meta Business Manager — ver <code>NOTIFICACIONES.md</code>.
-              </p>
-
-              <div className="grid grid-cols-2 gap-6 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">WhatsApp del dueño</label>
-                  <input
-                    type="text"
-                    placeholder="70123456"
-                    value={settings.notifyPhone}
-                    onChange={(e) => setSettings({ ...settings, notifyPhone: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text placeholder-muted focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Email del dueño</label>
-                  <input
-                    type="email"
-                    placeholder="dueno@negocio.com"
-                    value={settings.notifyEmail}
-                    onChange={(e) => setSettings({ ...settings, notifyEmail: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text placeholder-muted focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-6 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Umbral "venta grande" (Bs)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={settings.bigSaleThreshold}
-                    onChange={(e) => setSettings({ ...settings, bigSaleThreshold: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Umbral "ajuste fuerte" (unid.)</label>
-                  <input
-                    type="number"
-                    step="1"
-                    value={settings.bigAdjustmentThreshold}
-                    onChange={(e) => setSettings({ ...settings, bigAdjustmentThreshold: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Plazo de fiado (días)</label>
-                  <input
-                    type="number"
-                    step="1"
-                    value={settings.creditTermDays}
-                    onChange={(e) => setSettings({ ...settings, creditTermDays: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-6 mb-4">
-                <label className="flex items-center gap-2 text-sm text-text">
-                  <input
-                    type="checkbox"
-                    checked={settings.whatsappEnabled}
-                    onChange={(e) => setSettings({ ...settings, whatsappEnabled: e.target.checked })}
-                  />
-                  Activar envío por WhatsApp
-                </label>
-                <label className="flex items-center gap-2 text-sm text-text">
-                  <input
-                    type="checkbox"
-                    checked={settings.emailEnabled}
-                    onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
-                  />
-                  Activar envío por email
-                </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Hora del resumen diario</label>
-                  <select
-                    value={settings.dailyCheckHour}
-                    onChange={(e) => setSettings({ ...settings, dailyCheckHour: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
-                  >
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted mt-1">
-                    También revisa cuentas por cobrar vencidas y por pagar próximas a vencer — no hace falta más de una vez al día, esas deudas no cambian minuto a minuto.
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-2">Hora del resumen semanal (lunes)</label>
-                  <select
-                    value={settings.weeklyCheckHour}
-                    onChange={(e) => setSettings({ ...settings, weeklyCheckHour: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
-                  >
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {testMessage && <p className="text-sm mb-3">{testMessage}</p>}
-
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-medium text-muted mb-2">Enviar WhatsApp de prueba a (opcional, si no se usa el de arriba)</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={settings.notifyPhone || "70123456"}
-                      value={testPhoneTo}
-                      onChange={(e) => setTestPhoneTo(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-border rounded-lg text-text placeholder-muted text-sm focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleTestNotification("whatsapp")}
-                      disabled={testingChannel !== null}
-                      className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition whitespace-nowrap"
-                    >
-                      {testingChannel === "whatsapp" ? "Enviando..." : "📱 Probar"}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted mb-2">Enviar email de prueba a (opcional, si no se usa el de arriba)</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      placeholder={settings.notifyEmail || "correo@ejemplo.com"}
-                      value={testEmailTo}
-                      onChange={(e) => setTestEmailTo(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-border rounded-lg text-text placeholder-muted text-sm focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleTestNotification("email")}
-                      disabled={testingChannel !== null}
-                      className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition whitespace-nowrap"
-                    >
-                      {testingChannel === "email" ? "Enviando..." : "✉️ Probar"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -352,6 +154,23 @@ export default function SettingsPage() {
             </button>
           </form>
         </div>
+
+        <Link
+          href="/settings/notifications"
+          className="mt-6 flex items-center gap-4 bg-surface backdrop-blur-md border border-border rounded-2xl p-6 hover:border-primary-2/50 hover:-translate-y-0.5 transition group"
+        >
+          <div className="w-12 h-12 rounded-xl glass-2 flex items-center justify-center text-2xl shrink-0">🔔</div>
+          <div className="flex-1">
+            <p className="font-bold text-text">Notificaciones</p>
+            <p className="text-sm text-muted">
+              WhatsApp y email para stock bajo, cierre de caja, cuentas vencidas y más
+              {notifChannelsOn.length > 0 && (
+                <span className="text-success"> · {notifChannelsOn.join(" + ")} activo</span>
+              )}
+            </p>
+          </div>
+          <span className="text-primary-2 text-xl group-hover:translate-x-1 transition-transform">→</span>
+        </Link>
       </div>
     </div>
   )
