@@ -11,16 +11,17 @@ export async function POST(request: Request) {
   const { error, status } = await requireRole(["ADMIN"])
   if (error) return NextResponse.json({ error }, { status })
 
-  const { channel } = await request.json()
+  const { channel, to } = await request.json()
   const settings = await prisma.storeSettings.findFirst()
 
   if (channel === "whatsapp") {
-    if (!settings?.notifyPhone) {
-      return NextResponse.json({ error: "Guarda primero un número de WhatsApp en Configuración" }, { status: 400 })
+    const target = (to || settings?.notifyPhone || "").trim()
+    if (!target) {
+      return NextResponse.json({ error: "Escribe un número de WhatsApp (o guarda uno en Configuración)" }, { status: 400 })
     }
     // Requiere que la plantilla "prueba_notificacion" (1 variable) esté
     // creada y aprobada en Meta Business Manager -- ver NOTIFICACIONES.md.
-    const result = await sendWhatsAppTemplate(settings.notifyPhone, "prueba_notificacion", [
+    const result = await sendWhatsAppTemplate(target, "prueba_notificacion", [
       new Date().toLocaleString("es-BO"),
     ])
     if (!result.success) return NextResponse.json({ error: result.error }, { status: 502 })
@@ -28,11 +29,12 @@ export async function POST(request: Request) {
   }
 
   if (channel === "email") {
-    if (!settings?.notifyEmail) {
-      return NextResponse.json({ error: "Guarda primero un email en Configuración" }, { status: 400 })
+    const target = (to || settings?.notifyEmail || "").trim()
+    if (!target) {
+      return NextResponse.json({ error: "Escribe un email (o guarda uno en Configuración)" }, { status: 400 })
     }
     const result = await sendEmail({
-      to: settings.notifyEmail,
+      to: target,
       subject: "Notificación de prueba — POS Sistema",
       html: `<p>Esto es una notificación de prueba enviada el ${new Date().toLocaleString("es-BO")}.</p>`,
     })

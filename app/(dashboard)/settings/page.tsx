@@ -37,6 +37,8 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("")
   const [testMessage, setTestMessage] = useState("")
   const [testingChannel, setTestingChannel] = useState<string | null>(null)
+  const [testEmailTo, setTestEmailTo] = useState("")
+  const [testPhoneTo, setTestPhoneTo] = useState("")
 
   useEffect(() => {
     loadSettings()
@@ -82,13 +84,14 @@ export default function SettingsPage() {
     setTestingChannel(channel)
     setTestMessage("")
     try {
+      const to = channel === "email" ? testEmailTo.trim() : testPhoneTo.trim()
       const response = await fetch("/api/settings/test-notification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel }),
+        body: JSON.stringify({ channel, to: to || undefined }),
       })
       const data = await response.json()
-      setTestMessage(response.ok ? "✅ Enviado correctamente" : `❌ ${data.error}`)
+      setTestMessage(response.ok ? `✅ Enviado a ${to || (channel === "email" ? settings.notifyEmail : settings.notifyPhone)}` : `❌ ${data.error}`)
     } catch (error) {
       setTestMessage("❌ Error: " + (error as any).message)
     } finally {
@@ -257,23 +260,47 @@ export default function SettingsPage() {
 
               {testMessage && <p className="text-sm mb-3">{testMessage}</p>}
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleTestNotification("whatsapp")}
-                  disabled={testingChannel !== null}
-                  className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition"
-                >
-                  {testingChannel === "whatsapp" ? "Enviando..." : "📱 Enviar WhatsApp de prueba"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTestNotification("email")}
-                  disabled={testingChannel !== null}
-                  className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition"
-                >
-                  {testingChannel === "email" ? "Enviando..." : "✉️ Enviar email de prueba"}
-                </button>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-2">Enviar WhatsApp de prueba a (opcional, si no se usa el de arriba)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={settings.notifyPhone || "70123456"}
+                      value={testPhoneTo}
+                      onChange={(e) => setTestPhoneTo(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-border rounded-lg text-text placeholder-muted text-sm focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleTestNotification("whatsapp")}
+                      disabled={testingChannel !== null}
+                      className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition whitespace-nowrap"
+                    >
+                      {testingChannel === "whatsapp" ? "Enviando..." : "📱 Probar"}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-2">Enviar email de prueba a (opcional, si no se usa el de arriba)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder={settings.notifyEmail || "correo@ejemplo.com"}
+                      value={testEmailTo}
+                      onChange={(e) => setTestEmailTo(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-border rounded-lg text-text placeholder-muted text-sm focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleTestNotification("email")}
+                      disabled={testingChannel !== null}
+                      className="px-4 py-2 bg-white/15 hover:bg-white/20 disabled:opacity-40 text-text rounded-lg text-sm font-medium transition whitespace-nowrap"
+                    >
+                      {testingChannel === "email" ? "Enviando..." : "✉️ Probar"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
