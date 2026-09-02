@@ -533,10 +533,28 @@ model StoreSettings {
   creditTermDays          Int      @default(30)
   whatsappEnabled         Boolean  @default(false)
   emailEnabled            Boolean  @default(false)
+  // Hora del dia (0-23, hora Bolivia) en la que corren los chequeos
+  // periodicos -- ver instrumentation.ts. La mayoria de las notificaciones
+  // son instantaneas (se disparan al momento del evento, no por chequeo);
+  // esto solo afecta al resumen diario/cuentas vencidas y al resumen
+  // semanal (que ademas solo corre los lunes).
+  dailyCheckHour          Int      @default(20)
+  weeklyCheckHour         Int      @default(8)
 
   updatedAt           DateTime @updatedAt
 
   @@map("store_settings")
+}
+
+// Preferencia del admin de recibir (o no) cada tipo de notificacion --
+// ver lib/notifications/preferences.ts. Sin fila para un type = habilitado
+// (comportamiento por defecto), asi que no hace falta sembrar las 16 filas.
+model NotificationPreference {
+  id      String  @id @default(cuid())
+  type    String  @unique
+  enabled Boolean @default(true)
+
+  @@map("notification_preferences")
 }
 
 // Auditoria de notificaciones enviadas (WhatsApp/email) y mecanismo de

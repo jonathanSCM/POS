@@ -16,6 +16,8 @@ interface Settings {
   creditTermDays: string
   whatsappEnabled: boolean
   emailEnabled: boolean
+  dailyCheckHour: string
+  weeklyCheckHour: string
 }
 
 export default function SettingsPage() {
@@ -32,6 +34,8 @@ export default function SettingsPage() {
     creditTermDays: "30",
     whatsappEnabled: false,
     emailEnabled: false,
+    dailyCheckHour: "20",
+    weeklyCheckHour: "8",
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
@@ -177,7 +181,12 @@ export default function SettingsPage() {
             </div>
 
             <div className="pt-6 border-t border-border">
-              <h2 className="text-xl font-bold text-text mb-1">Notificaciones</h2>
+              <div className="flex justify-between items-start mb-1">
+                <h2 className="text-xl font-bold text-text">Notificaciones</h2>
+                <Link href="/settings/notifications" className="text-xs text-primary-2 hover:underline whitespace-nowrap">
+                  Elegir qué notificaciones recibir →
+                </Link>
+              </div>
               <p className="text-sm text-muted mb-4">
                 Avisos automáticos por WhatsApp y email (stock bajo, cierre de caja, cuentas vencidas, etc.).
                 WhatsApp requiere plantillas aprobadas en Meta Business Manager — ver <code>NOTIFICACIONES.md</code>.
@@ -256,6 +265,36 @@ export default function SettingsPage() {
                   />
                   Activar envío por email
                 </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-muted mb-2">Hora del resumen diario</label>
+                  <select
+                    value={settings.dailyCheckHour}
+                    onChange={(e) => setSettings({ ...settings, dailyCheckHour: e.target.value })}
+                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted mt-1">
+                    También revisa cuentas por cobrar vencidas y por pagar próximas a vencer — no hace falta más de una vez al día, esas deudas no cambian minuto a minuto.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-muted mb-2">Hora del resumen semanal (lunes)</label>
+                  <select
+                    value={settings.weeklyCheckHour}
+                    onChange={(e) => setSettings({ ...settings, weeklyCheckHour: e.target.value })}
+                    className="w-full px-4 py-2 border border-border rounded-lg text-text focus:outline-none"
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {testMessage && <p className="text-sm mb-3">{testMessage}</p>}

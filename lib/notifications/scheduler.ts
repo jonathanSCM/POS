@@ -11,6 +11,38 @@ import {
 
 const REVENUE_STATUSES = ["COMPLETED", "PARTIALLY_RETURNED"] as const
 
+function boliviaNow(): { hour: number; weekday: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/La_Paz",
+    hour: "numeric",
+    hour12: false,
+    weekday: "short",
+  }).formatToParts(new Date())
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0") % 24
+  const weekdayStr = parts.find((p) => p.type === "weekday")?.value ?? "Mon"
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  return { hour, weekday: weekdayMap[weekdayStr] ?? 1 }
+}
+
+// Llamado cada hora en punto (ver instrumentation.ts): compara la hora
+// actual (Bolivia) contra lo configurado en Configuración y solo corre el
+// chequeo real si coincide. runDailyChecks/runWeeklyDigest ya deduplican
+// por día internamente, así que da igual si esto se llama de más.
+export async function runDailyChecksIfDue() {
+  const settings = await prisma.storeSettings.findFirst()
+  const { hour } = boliviaNow()
+  if (hour !== (settings?.dailyCheckHour ?? 20)) return
+  await runDailyChecks()
+}
+
+export async function runWeeklyDigestIfDue() {
+  const settings = await prisma.storeSettings.findFirst()
+  const { hour, weekday } = boliviaNow()
+  if (weekday !== 1) return // solo lunes
+  if (hour !== (settings?.weeklyCheckHour ?? 8)) return
+  await runWeeklyDigest()
+}
+
 // Se corre una vez por dia (ver instrumentation.ts): resumen de ventas del
 // dia + chequeo de cuentas por cobrar vencidas y por pagar proximas a
 // vencer. notifyReceivableOverdue/notifyPayableDue ya deduplican por dia

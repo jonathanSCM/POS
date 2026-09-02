@@ -2,6 +2,7 @@ import { getNotificationSettings } from "./settings"
 import { sendWhatsAppTemplate } from "./whatsapp"
 import { sendEmail } from "./email"
 import { wasNotifiedToday, recordNotification } from "./log"
+import { isTypeEnabled } from "./preferences"
 
 // Todas las funciones de este archivo son "seguras de disparar y olvidar":
 // nunca lanzan una excepcion hacia quien las llama (createSale, voidSale,
@@ -19,6 +20,7 @@ async function viaWhatsApp(opts: {
 }) {
   try {
     if (!opts.to) return
+    if (!(await isTypeEnabled(opts.type))) return
     if (opts.dedupKey && (await wasNotifiedToday(opts.dedupKey))) return
 
     const { whatsappEnabled } = await getNotificationSettings()
@@ -63,6 +65,7 @@ async function viaEmail(opts: {
 }) {
   try {
     if (!opts.to) return
+    if (!(await isTypeEnabled(opts.type))) return
     if (opts.dedupKey && (await wasNotifiedToday(opts.dedupKey))) return
 
     const { emailEnabled } = await getNotificationSettings()

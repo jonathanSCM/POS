@@ -16,6 +16,8 @@ const EDITABLE_FIELDS = [
   "creditTermDays",
   "whatsappEnabled",
   "emailEnabled",
+  "dailyCheckHour",
+  "weeklyCheckHour",
 ] as const
 
 export async function GET() {
