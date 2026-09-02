@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import Decimal from "decimal.js"
 import { startOfBoliviaDay, formatDate } from "@/lib/dates"
 import { calculateLinesProfit } from "@/lib/profit"
+import { renderEmailLayout } from "./email-template"
+import { getNotificationSettings } from "./settings"
 import {
   notifyDailySummary,
   notifyWeeklySummary,
@@ -144,18 +146,37 @@ export async function runWeeklyDigest() {
     AND COALESCE((SELECT SUM(qty) FROM product_stocks ps WHERE ps."productId" = p.id), 0) <= p."minStockAlert"
   `
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:520px">
-      <h2>Resumen semanal</h2>
-      <p><b>Ventas:</b> Bs ${total.toFixed(2)} (${sales.length} ventas)</p>
-      <p><b>Utilidad estimada:</b> Bs ${profit.toFixed(2)}</p>
-      <p><b>Productos con stock crítico:</b> ${Number(lowStockCount[0]?.count ?? 0)}</p>
-      <p><b>Más vendidos:</b></p>
-      <ul>
-        ${topProducts.map((p) => `<li>${p.productName}: ${(p._sum.quantity || 0).toString()} unid.</li>`).join("")}
-      </ul>
-    </div>
-  `
+  const { storeName, currencySymbol } = await getNotificationSettings()
+
+  const topProductsHtml =
+    topProducts.length > 0
+      ? `
+        <p style="margin:20px 0 8px;color:#111827;font-size:13px;font-weight:700;">Más vendidos</p>
+        <table style="width:100%;border-collapse:collapse;">
+          ${topProducts
+            .map(
+              (p, idx) => `
+              <tr>
+                <td style="padding:8px 0;${idx > 0 ? "border-top:1px solid #f0f0f0;" : ""}color:#374151;font-size:13px;">${p.productName}</td>
+                <td style="padding:8px 0;${idx > 0 ? "border-top:1px solid #f0f0f0;" : ""}text-align:right;color:#6b7280;font-size:13px;">${(p._sum.quantity || 0).toString()} unid.</td>
+              </tr>`
+            )
+            .join("")}
+        </table>`
+      : ""
+
+  const html = renderEmailLayout({
+    storeName,
+    emoji: "📈",
+    title: "Resumen semanal",
+    mainText: "Así te fue en los últimos 7 días:",
+    rows: [
+      { label: "Ventas", value: `${currencySymbol}${total.toFixed(2)} (${sales.length} ventas)`, emphasize: true },
+      { label: "Utilidad estimada", value: `${currencySymbol}${profit.toFixed(2)}` },
+      { label: "Productos con stock crítico", value: String(Number(lowStockCount[0]?.count ?? 0)) },
+    ],
+    extraHtml: topProductsHtml,
+  })
 
   await notifyWeeklySummary(html)
 }

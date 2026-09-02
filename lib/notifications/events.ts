@@ -3,6 +3,7 @@ import { sendWhatsAppTemplate } from "./whatsapp"
 import { sendEmail } from "./email"
 import { wasNotifiedToday, recordNotification } from "./log"
 import { isTypeEnabled } from "./preferences"
+import { renderEmailLayout } from "./email-template"
 
 // Todas las funciones de este archivo son "seguras de disparar y olvidar":
 // nunca lanzan una excepcion hacia quien las llama (createSale, voidSale,
@@ -103,10 +104,6 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10)
 }
 
-function simpleEmail(title: string, body: string) {
-  return `<div style="font-family:sans-serif;max-width:480px"><h2>${title}</h2><p>${body}</p></div>`
-}
-
 // ─────────────────────────────────────────────
 // 1-2. Stock bajo / producto agotado
 // ─────────────────────────────────────────────
@@ -119,10 +116,9 @@ export async function notifyLowStock(data: {
   branchId: string
   branchName: string
 }) {
-  const { notifyPhone, notifyEmail } = await getNotificationSettings()
+  const { notifyPhone, notifyEmail, storeName } = await getNotificationSettings()
   const dedupKey = `LOW_STOCK:${data.productId}:${data.branchId}:${todayKey()}`
   const params = [data.qty, data.unitType, data.productName, data.branchName]
-  const msg = `Quedan ${data.qty} ${data.unitType} de ${data.productName} en ${data.branchName}. Reposición recomendada.`
 
   await viaWhatsApp({
     type: "LOW_STOCK",
@@ -136,8 +132,19 @@ export async function notifyLowStock(data: {
   await viaEmail({
     type: "LOW_STOCK",
     to: notifyEmail,
-    subject: `Stock bajo: ${data.productName}`,
-    html: simpleEmail("Stock bajo", msg),
+    subject: `⚠️ Stock bajo: ${data.productName}`,
+    html: renderEmailLayout({
+      storeName,
+      emoji: "📦",
+      title: "Stock bajo",
+      mainText: `Se recomienda reponer <b>${data.productName}</b> pronto — el stock está en o por debajo del mínimo configurado.`,
+      accentColor: "#f59e0b",
+      rows: [
+        { label: "Producto", value: data.productName },
+        { label: "Sucursal", value: data.branchName },
+        { label: "Stock actual", value: `${data.qty} ${data.unitType}`, emphasize: true },
+      ],
+    }),
     entityType: "Product",
     entityId: data.productId,
     dedupKey,
@@ -192,8 +199,7 @@ export async function notifyCashClosed(data: {
   cash: string
   qr: string
 }) {
-  const { notifyPhone, notifyEmail } = await getNotificationSettings()
-  const msg = `Caja cerrada en ${data.branchName}: ventas Bs ${data.totalSales}, efectivo Bs ${data.cash}, QR Bs ${data.qr}.`
+  const { notifyPhone, notifyEmail, storeName, currencySymbol } = await getNotificationSettings()
 
   await viaWhatsApp({
     type: "CASH_CLOSED",
@@ -206,8 +212,19 @@ export async function notifyCashClosed(data: {
   await viaEmail({
     type: "CASH_CLOSED",
     to: notifyEmail,
-    subject: `Cierre de caja: ${data.branchName}`,
-    html: simpleEmail("Cierre de caja", msg),
+    subject: `💰 Cierre de caja: ${data.branchName}`,
+    html: renderEmailLayout({
+      storeName,
+      emoji: "💰",
+      title: "Cierre de caja",
+      mainText: `Se cerró la caja de <b>${data.branchName}</b>. Este es el resumen del turno:`,
+      accentColor: "#16a34a",
+      rows: [
+        { label: "Total vendido", value: `${currencySymbol}${data.totalSales}`, emphasize: true },
+        { label: "Efectivo", value: `${currencySymbol}${data.cash}` },
+        { label: "QR", value: `${currencySymbol}${data.qr}` },
+      ],
+    }),
     entityType: "CashRegisterSession",
     entityId: data.sessionId,
   })
@@ -240,9 +257,8 @@ export async function notifyReceivableOverdue(data: {
   amount: string
   daysOverdue: number
 }) {
-  const { notifyPhone, notifyEmail } = await getNotificationSettings()
+  const { notifyPhone, notifyEmail, storeName, currencySymbol } = await getNotificationSettings()
   const dedupKey = `RECEIVABLE_OVERDUE:${data.customerId}:${todayKey()}`
-  const msg = `Cliente ${data.customerName} tiene Bs ${data.amount} vencidos desde hace ${data.daysOverdue} días.`
 
   await viaWhatsApp({
     type: "RECEIVABLE_OVERDUE",
@@ -256,8 +272,19 @@ export async function notifyReceivableOverdue(data: {
   await viaEmail({
     type: "RECEIVABLE_OVERDUE",
     to: notifyEmail,
-    subject: `Cuenta por cobrar vencida: ${data.customerName}`,
-    html: simpleEmail("Cuenta por cobrar vencida", msg),
+    subject: `🔴 Cuenta por cobrar vencida: ${data.customerName}`,
+    html: renderEmailLayout({
+      storeName,
+      emoji: "🔴",
+      title: "Cuenta por cobrar vencida",
+      mainText: `<b>${data.customerName}</b> tiene un saldo pendiente vencido. Conviene hacer seguimiento.`,
+      accentColor: "#dc2626",
+      rows: [
+        { label: "Cliente", value: data.customerName },
+        { label: "Días vencido", value: String(data.daysOverdue) },
+        { label: "Monto adeudado", value: `${currencySymbol}${data.amount}`, emphasize: true },
+      ],
+    }),
     entityType: "Customer",
     entityId: data.customerId,
     dedupKey,
@@ -270,9 +297,8 @@ export async function notifyPayableDue(data: {
   when: string
   amount: string
 }) {
-  const { notifyPhone, notifyEmail } = await getNotificationSettings()
+  const { notifyPhone, notifyEmail, storeName, currencySymbol } = await getNotificationSettings()
   const dedupKey = `PAYABLE_DUE:${data.purchaseOrderId}:${todayKey()}`
-  const msg = `Factura del proveedor ${data.supplierName} vence ${data.when}: Bs ${data.amount}.`
 
   await viaWhatsApp({
     type: "PAYABLE_DUE",
@@ -286,8 +312,19 @@ export async function notifyPayableDue(data: {
   await viaEmail({
     type: "PAYABLE_DUE",
     to: notifyEmail,
-    subject: `Cuenta por pagar próxima a vencer: ${data.supplierName}`,
-    html: simpleEmail("Cuenta por pagar próxima a vencer", msg),
+    subject: `🟠 Cuenta por pagar próxima a vencer: ${data.supplierName}`,
+    html: renderEmailLayout({
+      storeName,
+      emoji: "🟠",
+      title: "Cuenta por pagar próxima a vencer",
+      mainText: `Tenés una factura de <b>${data.supplierName}</b> por vencer. Programá el pago para no atrasarte.`,
+      accentColor: "#ea580c",
+      rows: [
+        { label: "Proveedor", value: data.supplierName },
+        { label: "Vence", value: data.when },
+        { label: "Monto", value: `${currencySymbol}${data.amount}`, emphasize: true },
+      ],
+    }),
     entityType: "PurchaseOrder",
     entityId: data.purchaseOrderId,
     dedupKey,
@@ -404,9 +441,8 @@ export async function notifyDailySummary(data: {
   count: number
   avgTicket: string
 }) {
-  const { notifyPhone, notifyEmail } = await getNotificationSettings()
+  const { notifyPhone, notifyEmail, storeName, currencySymbol } = await getNotificationSettings()
   const dedupKey = `DAILY_SUMMARY:${todayKey()}`
-  const msg = `Hoy vendiste Bs ${data.total}, ${data.count} ventas, ticket promedio Bs ${data.avgTicket}.`
 
   await viaWhatsApp({
     type: "DAILY_SUMMARY",
@@ -418,8 +454,18 @@ export async function notifyDailySummary(data: {
   await viaEmail({
     type: "DAILY_SUMMARY",
     to: notifyEmail,
-    subject: "Resumen del día",
-    html: simpleEmail("Resumen del día", msg),
+    subject: `📊 Resumen del día: ${currencySymbol}${data.total} vendidos`,
+    html: renderEmailLayout({
+      storeName,
+      emoji: "📊",
+      title: "Resumen del día",
+      mainText: `Así te fue hoy:`,
+      rows: [
+        { label: "Total vendido", value: `${currencySymbol}${data.total}`, emphasize: true },
+        { label: "Cantidad de ventas", value: String(data.count) },
+        { label: "Ticket promedio", value: `${currencySymbol}${data.avgTicket}` },
+      ],
+    }),
     dedupKey,
   })
 }

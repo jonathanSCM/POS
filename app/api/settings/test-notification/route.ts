@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/authz"
 import { prisma } from "@/lib/prisma"
 import { sendWhatsAppTemplate } from "@/lib/notifications/whatsapp"
 import { sendEmail } from "@/lib/notifications/email"
+import { renderEmailLayout } from "@/lib/notifications/email-template"
 
 // Envia una notificacion de prueba contra el telefono/email guardados en
 // Configuracion -- para verificar credenciales de Meta/Resend sin tener que
@@ -35,8 +36,14 @@ export async function POST(request: Request) {
     }
     const result = await sendEmail({
       to: target,
-      subject: "Notificación de prueba — POS Sistema",
-      html: `<p>Esto es una notificación de prueba enviada el ${new Date().toLocaleString("es-BO")}.</p>`,
+      subject: "✅ Notificación de prueba — POS Sistema",
+      html: renderEmailLayout({
+        storeName: settings?.storeName || "Mi Tienda",
+        emoji: "✅",
+        title: "Todo funcionando",
+        mainText: "Si estás viendo esto con buen formato, tu configuración de email quedó lista para recibir notificaciones reales del sistema.",
+        rows: [{ label: "Enviado", value: new Date().toLocaleString("es-BO", { timeZone: "America/La_Paz" }) }],
+      }),
     })
     if (!result.success) return NextResponse.json({ error: result.error }, { status: 502 })
     return NextResponse.json({ success: true })
