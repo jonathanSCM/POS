@@ -1,8 +1,10 @@
-import { prisma } from "@/lib/prisma"
-import { getCurrencySymbol } from "@/lib/settings"
-import { formatDateTime } from "@/lib/dates"
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import Decimal from "decimal.js"
+import { getWhatsAppOrders, updateWhatsAppOrderStatus } from "@/app/actions/whatsapp-orders"
+import { formatDateTime } from "@/lib/dates"
+import { useCurrencySymbol } from "@/components/shared/CurrencyProvider"
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   NUEVO: { label: "🆕 Nuevo", color: "bg-blue-100 text-blue-800" },
@@ -11,13 +13,39 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   CANCELADO: { label: "❌ Cancelado", color: "bg-red-100 text-red-800" },
 }
 
-export default async function OrdersPage() {
-  const currency = await getCurrencySymbol()
-  const orders = await prisma.whatsAppOrder.findMany({
-    include: { lines: true },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  })
+const NEXT_STATUS: Record<string, { status: string; label: string }[]> = {
+  NUEVO: [
+    { status: "CONFIRMADO", label: "Confirmar" },
+    { status: "CANCELADO", label: "Cancelar" },
+  ],
+  CONFIRMADO: [
+    { status: "ENTREGADO", label: "Marcar entregado" },
+    { status: "CANCELADO", label: "Cancelar" },
+  ],
+}
+
+export default function OrdersPage() {
+  const currency = useCurrencySymbol()
+  const [orders, setOrders] = useState<any[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function load() {
+    setOrders(await getWhatsAppOrders())
+  }
+
+  async function handleStatusChange(id: string, status: string) {
+    setBusyId(id)
+    try {
+      await updateWhatsAppOrderStatus(id, status as any)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   return (
     <div className="min-h-screen p-8">
@@ -25,7 +53,9 @@ export default async function OrdersPage() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-4xl font-bold text-text mb-2">Pedidos por WhatsApp</h1>
-            <p className="text-muted">Panel básico de pedidos digitales</p>
+            <p className="text-muted">
+              Panel de pedidos digitales — se pueden cargar manualmente mientras el bot de pedidos (Etapa 2) no esté conectado
+            </p>
           </div>
           <Link href="/" className="px-4 py-2 bg-white/15 hover:bg-white/20 text-text rounded-lg font-medium transition">
             ← Dashboard
@@ -43,11 +73,13 @@ export default async function OrdersPage() {
                 <th className="px-6 py-3 text-center text-sm font-semibold text-text">Estado</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-text">Total</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-text">Fecha</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-text">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {orders.map((order) => {
                 const status = statusLabels[order.status] || { label: order.status, color: "bg-white/10 text-text" }
+                const nextActions = NEXT_STATUS[order.status] || []
                 return (
                   <tr key={order.id}>
                     <td className="px-6 py-4 text-sm font-mono font-semibold text-text">{order.code}</td>
@@ -59,14 +91,28 @@ export default async function OrdersPage() {
                     <td className="px-6 py-4 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>{status.label}</span>
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-bold text-text">{currency}{new Decimal(order.total).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-text">{currency}{Number(order.total).toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm text-muted">{formatDateTime(order.createdAt)}</td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex gap-2 justify-center">
+                        {nextActions.map((a) => (
+                          <button
+                            key={a.status}
+                            onClick={() => handleStatusChange(order.id, a.status)}
+                            disabled={busyId === order.id}
+                            className="px-3 py-1 text-xs font-medium rounded bg-white/15 text-text hover:bg-white/20 transition disabled:opacity-40"
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
                   </tr>
                 )
               })}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted">
+                  <td colSpan={8} className="px-6 py-8 text-center text-sm text-muted">
                     Aún no hay pedidos por WhatsApp
                   </td>
                 </tr>

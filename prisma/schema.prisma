@@ -363,6 +363,10 @@ model Sale {
   // PENDING: venta a credito ("fiado") -- el saldo vive en
   // Customer.storeCreditBalance, no se rastrea pago parcial por venta.
   paymentStatus        String   @default("PAID")
+  // Solo se completa en ventas a credito (paymentStatus PENDING al crear):
+  // fecha limite para pagar, usada para calcular "vencido desde hace N dias"
+  // en las notificaciones de cuentas por cobrar.
+  creditDueDate        DateTime?
 
   isInvoiced           Boolean  @default(false)
   invoiceNumber        Int?     @unique
@@ -518,11 +522,41 @@ model StoreSettings {
   logoUrl             String?
   currencySymbol      String   @default("$")
   taxRatePercent      Decimal   @default(0)
-  receiptFooterText   String?  
+  receiptFooterText   String?
   receiptPaperWidth   String   @default("80mm")
+
+  // Notificaciones (WhatsApp/email) -- ver lib/notifications/
+  notifyPhone            String?
+  notifyEmail             String?
+  bigSaleThreshold        Decimal  @default(1000)
+  bigAdjustmentThreshold  Decimal  @default(20)
+  creditTermDays          Int      @default(30)
+  whatsappEnabled         Boolean  @default(false)
+  emailEnabled            Boolean  @default(false)
+
   updatedAt           DateTime @updatedAt
 
   @@map("store_settings")
+}
+
+// Auditoria de notificaciones enviadas (WhatsApp/email) y mecanismo de
+// deduplicacion: dedupKey evita, por ejemplo, mandar "stock bajo" del mismo
+// producto mas de una vez el mismo dia aunque se vendan varias unidades.
+model NotificationLog {
+  id         String   @id @default(cuid())
+  type       String
+  channel    String   // WHATSAPP | EMAIL
+  recipient  String
+  entityType String?
+  entityId   String?
+  dedupKey   String?
+  status     String   // SENT | FAILED
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([dedupKey])
+  @@index([createdAt])
+  @@map("notification_logs")
 }
 
 // ─────────────────────────────────────────────

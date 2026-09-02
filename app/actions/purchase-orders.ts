@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth"
 import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
 import { getActiveBranchId } from "@/lib/branch-context"
+import { notifyPurchaseOrderReceived } from "@/lib/notifications/events"
 
 let poCounter = 0
 
@@ -139,6 +140,14 @@ export async function receivePurchaseOrder(id: string) {
   })
 
   await prisma.$transaction([...productUpdates, ...costUpdates, poUpdate, ...movements] as any)
+
+  const supplier = await prisma.supplier.findUnique({ where: { id: po.supplierId } })
+  const totalUnits = po.lines.reduce((sum, l) => sum.plus(l.quantity.toString()), new Decimal(0))
+  notifyPurchaseOrderReceived({
+    purchaseOrderId: po.id,
+    supplierName: supplier?.name || "?",
+    totalUnits: totalUnits.toString(),
+  })
 
   return { success: true }
 }

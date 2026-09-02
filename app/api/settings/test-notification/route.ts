@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server"
+import { requireRole } from "@/lib/authz"
+import { prisma } from "@/lib/prisma"
+import { sendWhatsAppTemplate } from "@/lib/notifications/whatsapp"
+import { sendEmail } from "@/lib/notifications/email"
+
+// Envia una notificacion de prueba contra el telefono/email guardados en
+// Configuracion -- para verificar credenciales de Meta/Resend sin tener que
+// esperar a que ocurra un evento real del negocio.
+export async function POST(request: Request) {
+  const { error, status } = await requireRole(["ADMIN"])
+  if (error) return NextResponse.json({ error }, { status })
+
+  const { channel } = await request.json()
+  const settings = await prisma.storeSettings.findFirst()
+
+  if (channel === "whatsapp") {
+    if (!settings?.notifyPhone) {
+      return NextResponse.json({ error: "Guarda primero un número de WhatsApp en Configuración" }, { status: 400 })
+    }
+    // Requiere que la plantilla "prueba_notificacion" (1 variable) esté
+    // creada y aprobada en Meta Business Manager -- ver NOTIFICACIONES.md.
+    const result = await sendWhatsAppTemplate(settings.notifyPhone, "prueba_notificacion", [
+      new Date().toLocaleString("es-BO"),
+    ])
+    if (!result.success) return NextResponse.json({ error: result.error }, { status: 502 })
+    return NextResponse.json({ success: true })
+  }
+
+  if (channel === "email") {
+    if (!settings?.notifyEmail) {
+      return NextResponse.json({ error: "Guarda primero un email en Configuración" }, { status: 400 })
+    }
+    const result = await sendEmail({
+      to: settings.notifyEmail,
+      subject: "Notificación de prueba — POS Sistema",
+      html: `<p>Esto es una notificación de prueba enviada el ${new Date().toLocaleString("es-BO")}.</p>`,
+    })
+    if (!result.success) return NextResponse.json({ error: result.error }, { status: 502 })
+    return NextResponse.json({ success: true })
+  }
+
+  return NextResponse.json({ error: "Canal inválido" }, { status: 400 })
+}

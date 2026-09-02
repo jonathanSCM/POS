@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth"
 import { requireRoleAction } from "@/lib/authz"
 import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
+import { notifySaleVoided } from "@/lib/notifications/events"
 
 function serializeReturn(ret: any) {
   return {
@@ -44,7 +45,7 @@ export async function voidSale(saleId: string, reason: string) {
 
   if (!reason.trim()) throw new Error("Hay que indicar un motivo para anular la venta")
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const sale = await tx.sale.findUnique({
       where: { id: saleId },
       include: { lines: true, payments: true },
@@ -133,6 +134,10 @@ export async function voidSale(saleId: string, reason: string) {
 
     return { ...updated, total: updated.total.toString(), subtotal: updated.subtotal.toString() }
   })
+
+  notifySaleVoided({ saleId, total: result.total, userName: (session.user as any).name || "?" })
+
+  return result
 }
 
 // Devolucion parcial o total de mercaderia ya entregada: repone stock solo

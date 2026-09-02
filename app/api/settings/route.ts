@@ -9,6 +9,13 @@ const EDITABLE_FIELDS = [
   "taxRatePercent",
   "receiptFooterText",
   "receiptPaperWidth",
+  "notifyPhone",
+  "notifyEmail",
+  "bigSaleThreshold",
+  "bigAdjustmentThreshold",
+  "creditTermDays",
+  "whatsappEnabled",
+  "emailEnabled",
 ] as const
 
 export async function GET() {

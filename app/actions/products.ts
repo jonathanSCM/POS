@@ -5,7 +5,10 @@ import { productSchema, stockAdjustmentSchema } from "@/lib/validations"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { Prisma } from "@prisma/client"
+import Decimal from "decimal.js"
 import { getActiveBranchId } from "@/lib/branch-context"
+import { getNotificationSettings } from "@/lib/notifications/settings"
+import { notifyLowStock, notifyStockOut, notifyBigStockAdjustment } from "@/lib/notifications/events"
 
 export async function createProduct(data: any) {
   const session = await getServerSession(authOptions)
@@ -116,7 +119,7 @@ export async function adjustStock(data: any) {
   const movementType =
     validated.quantity > 0 ? "ADJUSTMENT_IN" : "ADJUSTMENT_OUT"
 
-  await prisma.$transaction([
+  const [, movement] = await prisma.$transaction([
     prisma.productStock.upsert({
       where: { productId_branchId: { productId: validated.productId, branchId } },
       create: { productId: validated.productId, branchId, qty: newQty },
@@ -135,6 +138,32 @@ export async function adjustStock(data: any) {
       },
     }),
   ])
+
+  // Notificaciones, siempre después de confirmado el ajuste.
+  const branch = await prisma.branch.findUnique({ where: { id: branchId } })
+  const branchName = branch?.name || branchId
+  const minStockAlert = new Decimal(product.minStockAlert.toString())
+  if (newQty.lte(0)) {
+    notifyStockOut({ productId: product.id, productName: product.name, branchId, branchName })
+  } else if (newQty.lte(minStockAlert)) {
+    notifyLowStock({
+      productId: product.id,
+      productName: product.name,
+      unitType: product.unitType,
+      qty: newQty.toString(),
+      branchId,
+      branchName,
+    })
+  }
+  const { bigAdjustmentThreshold } = await getNotificationSettings()
+  if (Math.abs(validated.quantity) >= bigAdjustmentThreshold) {
+    notifyBigStockAdjustment({
+      movementId: movement.id,
+      productName: product.name,
+      branchName,
+      quantity: validated.quantity > 0 ? `+${validated.quantity}` : String(validated.quantity),
+    })
+  }
 
   return { success: true }
 }

@@ -7,6 +7,13 @@ import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
 import { randomUUID } from "crypto"
 import { getActiveBranchId } from "@/lib/branch-context"
+import { getNotificationSettings } from "@/lib/notifications/settings"
+import {
+  notifyLowStock,
+  notifyStockOut,
+  notifyBigSale,
+  notifyCreditSaleRegistered,
+} from "@/lib/notifications/events"
 
 // Convierte los campos Decimal de una venta (y sus líneas/pagos) a string,
 // para poder devolverla desde una Server Action a un Client Component
@@ -75,6 +82,20 @@ export async function createSale(data: {
     // abierta más abajo: así toda venta queda ligada a la sucursal real en
     // la que está operando el cajero en este momento.
     const branchId = await getActiveBranchId()
+    const { creditTermDays, bigSaleThreshold } = await getNotificationSettings()
+    let updatedCustomerBalance: Decimal | null = null
+
+    // Se completa durante la transacción con el stock resultante de cada
+    // línea vendida, para poder chequear "stock bajo"/"agotado" después
+    // (nunca dentro de la transacción -- son llamadas de red, no deben
+    // demorar ni arriesgar el commit de la venta).
+    const postSaleStock: Array<{
+      productId: string
+      productName: string
+      unitType: string
+      minStockAlert: Decimal
+      qtyAfter: Decimal
+    }> = []
 
     // Crear venta con transacción
     const sale = await prisma.$transaction(async (tx) => {
@@ -155,6 +176,10 @@ export async function createSale(data: {
           completedAt: new Date(),
           publicToken: randomUUID(),
           paymentStatus: data.paymentMethod === "CREDIT" ? "PENDING" : "PAID",
+          creditDueDate:
+            data.paymentMethod === "CREDIT"
+              ? new Date(Date.now() + creditTermDays * 24 * 60 * 60 * 1000)
+              : null,
           isInvoiced: Boolean(data.isInvoiced),
           invoiceNumber,
           customerTaxId: data.isInvoiced ? data.customerTaxId || null : null,
@@ -214,6 +239,15 @@ export async function createSale(data: {
             reason: `Venta completada`,
           },
         })
+
+        const product = products.get(line.productId)!
+        postSaleStock.push({
+          productId: line.productId,
+          productName: product.name,
+          unitType: product.unitType,
+          minStockAlert: new Decimal(product.minStockAlert.toString()),
+          qtyAfter,
+        })
       }
 
       // Solo el efectivo físico afecta lo que debería haber en la caja al
@@ -223,10 +257,11 @@ export async function createSale(data: {
       // Venta a crédito: no entra dinero, se resta del saldo de cuenta del
       // cliente (queda debiendo). No toca la caja registradora.
       if (data.paymentMethod === "CREDIT") {
-        await tx.customer.update({
+        const updatedCustomer = await tx.customer.update({
           where: { id: data.customerId! },
           data: { storeCreditBalance: { decrement: new Prisma.Decimal(total.toString()) } },
         })
+        updatedCustomerBalance = new Decimal(updatedCustomer.storeCreditBalance.toString())
       }
 
       if (openSession && data.paymentMethod === "CASH") {
@@ -250,6 +285,45 @@ export async function createSale(data: {
 
       return newSale
     })
+
+    // Notificaciones: siempre después de que la venta ya se confirmó, nunca
+    // dentro de la transacción -- si una falla, la venta ya quedó hecha
+    // igual (ver lib/notifications/events.ts, nunca lanzan excepción).
+    const branch = await prisma.branch.findUnique({ where: { id: branchId } })
+    for (const stock of postSaleStock) {
+      if (stock.qtyAfter.lte(0)) {
+        notifyStockOut({
+          productId: stock.productId,
+          productName: stock.productName,
+          branchId,
+          branchName: branch?.name || branchId,
+        })
+      } else if (stock.qtyAfter.lte(stock.minStockAlert)) {
+        notifyLowStock({
+          productId: stock.productId,
+          productName: stock.productName,
+          unitType: stock.unitType,
+          qty: stock.qtyAfter.toString(),
+          branchId,
+          branchName: branch?.name || branchId,
+        })
+      }
+    }
+    if (new Decimal(sale.total.toString()).gte(bigSaleThreshold)) {
+      notifyBigSale({
+        saleId: sale.id,
+        total: new Decimal(sale.total.toString()).toFixed(2),
+        branchName: branch?.name || branchId,
+      })
+    }
+    if (data.paymentMethod === "CREDIT" && (sale as any).customer?.phone) {
+      notifyCreditSaleRegistered({
+        saleId: sale.id,
+        customerPhone: (sale as any).customer.phone,
+        total: new Decimal(sale.total.toString()).toFixed(2),
+        balance: (updatedCustomerBalance ?? new Decimal(0)).abs().toFixed(2),
+      })
+    }
 
     return serializeSale(sale)
   } catch (error) {

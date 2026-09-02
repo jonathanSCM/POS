@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { Prisma } from "@prisma/client"
 import Decimal from "decimal.js"
+import { notifyPaymentReceived } from "@/lib/notifications/events"
+import { getActiveBranchId } from "@/lib/branch-context"
 
 function serializeCustomer(customer: any) {
   return {
@@ -144,8 +146,9 @@ export async function registerCustomerPayment(data: {
   if (amount.lte(0)) throw new Error("El monto debe ser mayor a cero")
 
   const userId = (session.user as any).id as string
+  const branchId = await getActiveBranchId()
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const payment = await tx.customerPayment.create({
       data: {
         customerId: data.customerId,
@@ -156,14 +159,14 @@ export async function registerCustomerPayment(data: {
       },
     })
 
-    await tx.customer.update({
+    const updatedCustomer = await tx.customer.update({
       where: { id: data.customerId },
       data: { storeCreditBalance: { increment: new Prisma.Decimal(amount.toString()) } },
     })
 
     if (data.method === "CASH") {
       const openSession = await tx.cashRegisterSession.findFirst({
-        where: { status: "OPEN" },
+        where: { status: "OPEN", branchId },
         orderBy: { openedAt: "desc" },
       })
       if (openSession) {
@@ -183,8 +186,22 @@ export async function registerCustomerPayment(data: {
       }
     }
 
-    return { ...payment, amount: payment.amount.toString() }
+    return {
+      ...payment,
+      amount: payment.amount.toString(),
+      customerPhone: updatedCustomer.phone,
+      newBalance: updatedCustomer.storeCreditBalance.toString(),
+    }
   })
+
+  notifyPaymentReceived({
+    paymentId: result.id,
+    customerPhone: result.customerPhone,
+    amount: result.amount,
+    balance: new Decimal(result.newBalance).abs().toFixed(2),
+  })
+
+  return result
 }
 
 // Total que deben todos los clientes juntos (suma de saldos negativos), para
